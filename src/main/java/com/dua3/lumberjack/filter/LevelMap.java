@@ -19,7 +19,6 @@ import com.dua3.lumberjack.LogLevel;
 import com.dua3.lumberjack.support.SharableString;
 import com.dua3.lumberjack.support.SharedString;
 import org.jspecify.annotations.Nullable;
-import org.w3c.dom.Node;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

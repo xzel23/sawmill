@@ -27,6 +27,7 @@ import java.util.ServiceConfigurationError;
 /**
  * Utility class for logging operations.
  */
+@SuppressWarnings("AccessOfSystemProperties")
 public final class Lumberjack {
     private Lumberjack() { /* utility class */ }
 
@@ -38,7 +39,11 @@ public final class Lumberjack {
 
         // === configure logging
         getLoggingProperties().ifPresent(properties ->
-                LoggingConfiguration.configure(properties, DISPATCHER::setFilter, DISPATCHER::addLogHandler)
+                {
+                    LoggingConfiguration config = LoggingConfiguration.parse(properties);
+                    config.getHandlers().forEach(DISPATCHER::addLogHandler);
+                    DISPATCHER.setFilter(config.getRootFilter());
+                }
         );
 
         // === wire the logging frontends
@@ -91,6 +96,14 @@ public final class Lumberjack {
     }
 
 
+    /**
+     * Loads logging configuration properties from the "logging.properties" file located in the classpath.
+     * If the file is not found or an error occurs during loading, an empty {@code Optional} is returned.
+     *
+     * @return an {@code Optional} containing the loaded {@code Properties} if the file is found and successfully loaded,
+     *         or an empty {@code Optional} if the file is not found or an error occurs.
+     */
+    @SuppressWarnings("OptionalContainsCollection")
     private static Optional<Properties> getLoggingProperties() {
         Properties properties = new Properties();
         try (InputStream in = ClassLoader.getSystemResourceAsStream("logging.properties")) {
@@ -101,6 +114,7 @@ public final class Lumberjack {
                 return Optional.of(properties);
             }
         } catch (IOException e) {
+            // write stacktrace to stderr because logging has not been initialized yet
             e.printStackTrace(System.err);
             return Optional.empty();
         }

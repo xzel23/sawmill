@@ -132,20 +132,6 @@ public final class LoggingConfiguration {
     private final LinkedHashMap<String, LogFilter> filters = new LinkedHashMap<>();
 
     /**
-     * Configures the logging system using the provided properties and consumers for handler and filter setup.
-     *
-     * @param properties     the {@link Properties} object containing the configuration settings for logging
-     * @param setRootFilter  a {@link Consumer} that accepts a {@link LogFilter} representing the root filter to be applied
-     * @param addHandler     a {@link Consumer} that accepts a {@link LogHandler} to register logging handlers
-     */
-    public static void configure(Properties properties, Consumer<LogFilter> setRootFilter, Consumer<LogHandler> addHandler) {
-        LoggingConfiguration config = parse(properties);
-
-        config.getHandlers().forEach(addHandler);
-        setRootFilter.accept(config.getRootFilter());
-    }
-
-    /**
      * Retrieves an unmodifiable {@link SequencedCollection} of all registered log handlers.
      *
      * @return a sequenced collection containing all {@link LogHandler} instances currently registered

@@ -23,6 +23,7 @@ import org.jspecify.annotations.NullMarked;
 module lumberjack.logger {
     exports com.dua3.lumberjack;
     exports com.dua3.lumberjack.filter;
+    exports com.dua3.lumberjack.handler;
 
     requires org.jspecify;
 

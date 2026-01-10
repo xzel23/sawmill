@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dua3.lumberjack;
+package com.dua3.lumberjack.handler;
 
+import com.dua3.lumberjack.ConsoleCode;
+import com.dua3.lumberjack.LogFilter;
+import com.dua3.lumberjack.LogFormat;
+import com.dua3.lumberjack.LogHandler;
+import com.dua3.lumberjack.LogLevel;
 import com.dua3.lumberjack.support.AnsiCode;
 import org.jspecify.annotations.Nullable;
 

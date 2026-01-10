@@ -16,6 +16,7 @@
 package com.dua3.lumberjack;
 
 import com.dua3.lumberjack.filter.LoggerNamePrefixFilter;
+import com.dua3.lumberjack.handler.ConsoleHandler;
 
 import java.io.PrintStream;
 import java.util.Arrays;

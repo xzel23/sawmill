@@ -105,6 +105,11 @@ public final class LoggingConfiguration {
     public static final String LOGGER_CONSOLE_COLORED = "colored";
 
     /**
+     * Configuration key for specifying the pattern used by the console logger.
+     */
+    public static final String LOGGER_CONSOLE_PATTERN = "pattern";
+
+    /**
      * Constant representing colored output for the console handler.
      */
     public static final String COLOR_ENABLED = "true";
@@ -241,12 +246,16 @@ public final class LoggingConfiguration {
                             throw new IllegalArgumentException("handler '" + name + "' - invalid value for '" + prefix + LOGGER_CONSOLE_COLORED + "': '" + sColored + "'");
                 };
 
-                yield new ConsoleHandler(name, stream, colored);
+                ConsoleHandler consoleHandler = new ConsoleHandler(name, stream, colored);
+                yield consoleHandler;
             }
             default -> throw new IllegalArgumentException("unknown handler type for handler '" + name + "' : " + sType);
         };
 
-        handleProperty(properties, LOGGING_HANDLER + "filter", filters::get, handler::setFilter, LogFilter::allPass);
+        handleProperty(properties, prefix + "filter", filters::get, handler::setFilter, LogFilter::allPass);
+        if (handler instanceof ConsoleHandler consoleHandler) {
+            handleProperty(properties, prefix + LOGGER_CONSOLE_PATTERN, s -> s, consoleHandler::setPattern, () -> LogPattern.DEFAULT_PATTERN);
+        }
 
         handlers.put(name, handler);
     }
@@ -320,6 +329,7 @@ public final class LoggingConfiguration {
                 String sStream = stream == System.err ? SYSTEM_ERR : SYSTEM_OUT;
                 properties.setProperty(prefix + LOGGER_CONSOLE_STREAM, sStream);
                 properties.setProperty(prefix + LOGGER_CONSOLE_COLORED, String.valueOf(consoleHandler.isColored()));
+                properties.setProperty(prefix + LOGGER_CONSOLE_PATTERN, consoleHandler.getPattern());
             }
         }
     }

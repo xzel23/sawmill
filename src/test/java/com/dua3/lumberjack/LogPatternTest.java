@@ -16,23 +16,23 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class LogFormatTest {
+public class LogPatternTest {
 
     @ParameterizedTest(name = "[{index}] pattern=\"{0}\"")
     @CsvSource(
             delimiter = '|',
             ignoreLeadingAndTrailingWhitespace = false,
             value = {
-                    // Core formats
+                    // Core patterns
                     "%msg%n|'Order 4711 processed\n'",
                     "%level %msg%n|'INFO Order 4711 processed\n'",
                     "%-5level %msg%n|'INFO  Order 4711 processed\n'",
 
-                    // Timestamp formats
+                    // Timestamp patterns
                     "%d{yyyy-MM-dd HH:mm:ss.SSS} %msg%n|'2026-01-10 14:23:41.123 Order 4711 processed\n'",
                     "%d{HH:mm:ss.SSS} %msg%n|'14:23:41.123 Order 4711 processed\n'",
 
-                    // Logger name formatting
+                    // Logger name patterning
                     "%logger %msg%n|'com.example.service.OrderService Order 4711 processed\n'",
                     "%logger{1} %msg%n|'OrderService Order 4711 processed\n'",
                     "%logger{2} %msg%n|'service.OrderService Order 4711 processed\n'",
@@ -55,10 +55,10 @@ public class LogFormatTest {
                             + "|'2026-01-10 14:23:41.123 [main] INFO  service.OrderService [AUDIT] alice - Order 4711 processed\n'"
             }
     )
-    void testFormat(String pattern, String expected) {
+    void testPattern(String pattern, String expected) {
         String threadName = Thread.currentThread().getName();
         String updatedExpected = expected.replace("main", threadName);
-        LogFormat fmt = new LogFormat(pattern);
+        LogPattern fmt = new LogPattern(pattern);
 
         Instant instant = LocalDateTime.of(2026, 1, 10, 14, 23, 41, 123_000_000)
                 .atZone(ZoneId.systemDefault())

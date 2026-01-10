@@ -17,7 +17,7 @@ package com.dua3.lumberjack.handler;
 
 import com.dua3.lumberjack.ConsoleCode;
 import com.dua3.lumberjack.LogFilter;
-import com.dua3.lumberjack.LogFormat;
+import com.dua3.lumberjack.LogPattern;
 import com.dua3.lumberjack.LogHandler;
 import com.dua3.lumberjack.LogLevel;
 import com.dua3.lumberjack.MDC;
@@ -64,22 +64,22 @@ public final class ConsoleHandler implements LogHandler {
     private final PrintStream out;
     private volatile LogFilter filter = LogFilter.allPass();
     private volatile Map<LogLevel, ConsoleCode> colorMap = new EnumMap<>(LogLevel.class);
-    private final LogFormat logFormat = new LogFormat();
+    private final LogPattern logPattern = new LogPattern();
 
     /**
-     * Set the format string.
-     * @param format the format string
+     * Set the format pattern.
+     * @param pattern the format pattern
      */
-    public void setFormat(String format) {
-        logFormat.setFormat(format);
+    public void setPattern(String pattern) {
+        logPattern.setPattern(pattern);
     }
 
     /**
-     * Get the format string.
-     * @return the format string
+     * Get the format pattern.
+     * @return the format pattern
      */
-    public String getFormat() {
-        return logFormat.getFormat();
+    public String getPattern() {
+        return logPattern.getPattern();
     }
 
 
@@ -125,7 +125,7 @@ public final class ConsoleHandler implements LogHandler {
     public void handle(Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t) {
         if (filter.test(instant, loggerName, lvl, mrk, mdc, msg, location, t)) {
             ConsoleCode consoleCodes = colorMap.get(lvl);
-            logFormat.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, msg, location, t, consoleCodes);
+            logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, msg, location, t, consoleCodes);
         }
     }
 

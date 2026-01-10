@@ -33,7 +33,7 @@ import java.util.function.Supplier;
 public final class MarkerFilter implements LogFilter {
 
     private final String name;
-    private final Predicate<? super String> precicate;
+    private final Predicate<? super String> predicate;
 
     /**
      * Constructs a new DefaultLogEntryFilter with the specified log level and filter.
@@ -43,7 +43,7 @@ public final class MarkerFilter implements LogFilter {
      */
     public MarkerFilter(String name, Predicate<? super String> markerFilter) {
         this.name = name;
-        this.precicate = markerFilter;
+        this.predicate = markerFilter;
     }
 
     @Override
@@ -53,7 +53,7 @@ public final class MarkerFilter implements LogFilter {
 
     @Override
     public boolean test(Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t) {
-        return precicate.test(mrk);
+        return predicate.test(mrk);
     }
 
     @Override
@@ -63,6 +63,6 @@ public final class MarkerFilter implements LogFilter {
 
     @Override
     public boolean isMarkerEnabled(@Nullable String marker) {
-        return precicate.test(marker == null ? "" : marker);
+        return predicate.test(marker == null ? "" : marker);
     }
 }

@@ -19,6 +19,9 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
+/**
+ * Utility class that provides helper methods for common programming tasks.
+ */
 public final class Util {
     private Util() {
         // utility class, no instances

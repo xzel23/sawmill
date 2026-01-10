@@ -249,7 +249,7 @@ public final class UniversalDispatcher implements LogDispatcher {
         try {
             return java.text.MessageFormat.format(pattern, params);
         } catch (Exception e) {
-            return pattern; // Fallback to raw pattern on error
+            return pattern; // Fallback to the raw pattern on error
         }
     }
 

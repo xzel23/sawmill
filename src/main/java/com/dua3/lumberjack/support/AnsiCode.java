@@ -21,11 +21,11 @@ package com.dua3.lumberjack.support;
 public final class AnsiCode {
 
     /**
-     * Marker: start of ESC-sequence.
+     * Marker: start of escape sequence.
      */
     public static final String ESC_START = "\033[";
     /**
-     * Marker: end of ESC-sequence.
+     * Marker: end of escape sequence.
      */
     public static final String ESC_END = "m";
 
@@ -74,11 +74,11 @@ public final class AnsiCode {
      */
     public static final char STRIKE_THROUGH_OFF = 29;
     /**
-     * ESC: start color sequence.
+     * ESC: start a color sequence.
      */
     public static final char COLOR = 38;
     /**
-     * ESC: start background color sequence.
+     * ESC: start a background color sequence.
      */
     public static final char BACKGROUND_COLOR = 48;
 

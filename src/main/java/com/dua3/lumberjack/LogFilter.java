@@ -141,16 +141,6 @@ final class LogFilterConstants {
         public boolean isEnabled(String loggerName, LogLevel logLevel, @Nullable String marker) {
             return true;
         }
-
-        @Override
-        public boolean isLevelEnabled(LogLevel logLevel) {
-            return true;
-        }
-
-        @Override
-        public boolean isMarkerEnabled(@Nullable String marker) {
-            return true;
-        }
     };
 
     /**

@@ -34,7 +34,7 @@ public final class SharedString implements CharSequence {
     private final String base;
     private final int start;
     private final int end;
-    private int hash;
+    private int hash = 0;
 
     SharedString(String base, int start, int end) {
         this.base = base;

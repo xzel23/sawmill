@@ -52,7 +52,7 @@ public final class LogFormat {
      * An abstract representation of a log format entry, which specifies how individual
      * components of a log message are formatted. This class implements the {@link LogFormatEntry}
      * interface and provides foundational methods for formatting and alignment.
-     *
+     * <p>
      * Subclasses must define the specific formatting behavior for different log components.
      */
     private abstract static class AbstractLogFormatEntry implements LogFormatEntry {
@@ -120,7 +120,7 @@ public final class LogFormat {
          * formatting rules such as truncation, padding, and alignment based on the
          * specified class fields {@code minWidth}, {@code maxWidth}, and {@code leftAlign}.
          * This method provides additional control over truncation direction.
-         *
+         * <p>
          * If the string value exceeds the maximum width, it will either be truncated
          * from the left or the right, depending on the {@code leftTruncate} parameter.
          * If the string value is shorter than the minimum width, padding will be added
@@ -520,7 +520,7 @@ public final class LogFormat {
     /**
      * Formats a log entry.
      *
-     * @param out
+     * @param out        the {@link PrintStream} to write the formatted log entry to
      * @param instant    the timestamp of the log entry
      * @param loggerName the name of the logger
      * @param lvl        the log level

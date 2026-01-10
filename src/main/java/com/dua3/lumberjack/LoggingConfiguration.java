@@ -30,6 +30,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * A configuration class for setting up and managing logging behaviors and settings.
+ * This class provides methods and properties for configuring log handlers, log filters,
+ * and other logging-related functionalities.
+ */
 public final class LoggingConfiguration {
     /**
      * Represents the root property key for the logging configurations.
@@ -115,12 +120,29 @@ public final class LoggingConfiguration {
 
     // *** filter configuration ***
 
+    /**
+     * A constant representing the logging level configuration property.
+     */
     public static final String LEVEL = "level";
 
     // *** end of configuration constants ***
 
     private final LinkedHashMap<String, LogHandler> handlers = new LinkedHashMap<>();
     private final LinkedHashMap<String, LogFilter> filters = new LinkedHashMap<>();
+
+    /**
+     * Configures the logging system using the provided properties and consumers for handler and filter setup.
+     *
+     * @param properties     the {@link Properties} object containing the configuration settings for logging
+     * @param setRootFilter  a {@link Consumer} that accepts a {@link LogFilter} representing the root filter to be applied
+     * @param addHandler     a {@link Consumer} that accepts a {@link LogHandler} to register logging handlers
+     */
+    public static void configure(Properties properties, Consumer<LogFilter> setRootFilter, Consumer<LogHandler> addHandler) {
+        LoggingConfiguration config = parse(properties);
+
+        config.getHandlers().forEach(addHandler);
+        setRootFilter.accept(config.getRootFilter());
+    }
 
     /**
      * Retrieves an unmodifiable {@link SequencedCollection} of all registered log handlers.
@@ -242,6 +264,7 @@ public final class LoggingConfiguration {
         handlers.put(name, handler);
     }
 
+    @SuppressWarnings("StringConcatenationMissingWhitespace")
     private void addFilter(Properties properties, String name) {
         String prefix = LOGGING_FILTER + "." + name + ".";
 
@@ -269,6 +292,11 @@ public final class LoggingConfiguration {
         filters.put(name, filter);
     }
 
+    /**
+     * Adds the current logging configuration, including filters and handlers, to the provided {@link Properties} object.
+     *
+     * @param properties the {@link Properties} object to which the logging filters and handlers will be added
+     */
     public void addToProperties(Properties properties) {
         properties.setProperty(LOGGING_FILTERS, String.join(",", filters.keySet()));
         properties.setProperty(LOGGING_HANDLERS, String.join(",", handlers.keySet()));
@@ -301,7 +329,7 @@ public final class LoggingConfiguration {
 
             if (handler instanceof ConsoleHandler consoleHandler) {
                 properties.setProperty(prefix + LOGGING_TYPE, "console");
-                PrintStream stream = consoleHandler.getPrintStream();
+                PrintStream stream = consoleHandler.getOut();
                 String sStream = stream == System.err ? SYSTEM_ERR : SYSTEM_OUT;
                 properties.setProperty(prefix + LOGGER_CONSOLE_STREAM, sStream);
                 properties.setProperty(prefix + LOGGER_CONSOLE_COLORED, String.valueOf(consoleHandler.isColored()));

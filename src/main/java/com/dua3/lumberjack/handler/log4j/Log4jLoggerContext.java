@@ -17,6 +17,7 @@ package com.dua3.lumberjack.handler.log4j;
 
 import org.apache.logging.log4j.spi.ExtendedLogger;
 import org.apache.logging.log4j.spi.LoggerContext;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,7 +48,7 @@ public final class Log4jLoggerContext implements LoggerContext {
     }
 
     @Override
-    public ExtendedLogger getLogger(String name, org.apache.logging.log4j.message.MessageFactory messageFactory) {
+    public ExtendedLogger getLogger(String name, org.apache.logging.log4j.message.@Nullable MessageFactory messageFactory) {
         return getLogger(name);
     }
 
@@ -57,7 +58,7 @@ public final class Log4jLoggerContext implements LoggerContext {
     }
 
     @Override
-    public boolean hasLogger(String name, org.apache.logging.log4j.message.MessageFactory messageFactory) {
+    public boolean hasLogger(String name, org.apache.logging.log4j.message.@Nullable MessageFactory messageFactory) {
         return hasLogger(name);
     }
 

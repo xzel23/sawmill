@@ -30,4 +30,5 @@ module lumberjack.logger {
     requires static org.apache.commons.logging;
     requires static org.apache.logging.log4j;
     requires static org.slf4j;
+    requires java.xml;
 }

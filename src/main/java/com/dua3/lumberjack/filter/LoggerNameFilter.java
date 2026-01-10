@@ -33,7 +33,7 @@ import java.util.function.Supplier;
 public final class LoggerNameFilter implements LogFilter {
 
     private final String name;
-    private final Predicate<String> loggerNameFilter;
+    private final Predicate<? super String> loggerNameFilter;
 
     /**
      * Constructs a new DefaultLogEntryFilter with the specified log level and filter.
@@ -41,7 +41,7 @@ public final class LoggerNameFilter implements LogFilter {
      * @param name  the name of the filter
      * @param loggerNameFilter the filter to set for the logger name
      */
-    public LoggerNameFilter(String name, Predicate<String> loggerNameFilter) {
+    public LoggerNameFilter(String name, Predicate<? super String> loggerNameFilter) {
         this.name = name;
         this.loggerNameFilter = loggerNameFilter;
     }

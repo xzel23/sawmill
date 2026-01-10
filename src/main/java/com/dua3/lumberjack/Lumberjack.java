@@ -38,7 +38,7 @@ public final class Lumberjack {
 
         // === configure logging
         getLoggingProperties().ifPresent(properties ->
-                LoggingConfigurator.configure(properties, DISPATCHER::setFilter, DISPATCHER::addLogHandler)
+                LoggingConfiguration.configure(properties, DISPATCHER::setFilter, DISPATCHER::addLogHandler)
         );
 
         // === wire the logging frontends

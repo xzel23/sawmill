@@ -46,6 +46,12 @@ public final class ConsoleHandler implements LogHandler {
             LogLevel.WARN, ConsoleCode.empty(),
             LogLevel.ERROR, ConsoleCode.empty()
     );
+
+    /**
+     * The default time zone used for timestamp formatting in the log messages.
+     * <p>
+     * The value is determined by the system's default time zone at runtime.
+     */
     public static final ZoneId ZONE_ID = ZoneId.systemDefault();
 
     private final String name;
@@ -105,7 +111,7 @@ public final class ConsoleHandler implements LogHandler {
      * Retrieves the PrintStream for log entries.
      * @return the PrintStream for log entries
      */
-    public PrintStream getPrintStream() {
+    public PrintStream getOut() {
         return out;
     }
 

@@ -19,6 +19,7 @@ import com.dua3.lumberjack.LogLevel;
 import com.dua3.lumberjack.support.SharableString;
 import com.dua3.lumberjack.support.SharedString;
 import org.jspecify.annotations.Nullable;
+import org.w3c.dom.Node;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * various levels in the logger hierarchy.
  * <p>
  * Each logger name is represented as a hierarchical structure, where parts of
- * the name separated by dots (".") are treated as levels.
+ * the name separated by dots ('.') are treated as levels.
  * This allows for retrieval of the most specific log level associated with a given logger name.
  */
 final class LevelMap {
@@ -43,7 +44,7 @@ final class LevelMap {
      *
      * @param rootLevel the {@code LogLevel} to be assigned to the root node of the map.
      */
-    public LevelMap(LogLevel rootLevel) {
+    LevelMap(LogLevel rootLevel) {
         root = new Node();
         root.level = rootLevel;
     }
@@ -69,7 +70,9 @@ final class LevelMap {
      */
     public Map<String, LogLevel> rules() {
         Map<String, LogLevel> rules = new java.util.LinkedHashMap<>();
-        rules.put("", root.level);
+        if (root.level != null) {
+            rules.put("", root.level);
+        }
         // traverse the complete tree and add all rules to the map
         traverseAndCollectRules(rules, "", root);
         return rules;
@@ -82,7 +85,7 @@ final class LevelMap {
      * @param prefix the accumulated logger name prefix up to this node
      * @param node   the current node being traversed
      */
-    private void traverseAndCollectRules(Map<String, LogLevel> rules, String prefix, Node node) {
+    private static void traverseAndCollectRules(Map<String, LogLevel> rules, String prefix, Node node) {
         for (Map.Entry<SharedString, Node> entry : node.children.entrySet()) {
             String loggerName = prefix.isEmpty() ? entry.getKey().toString() : prefix + "." + entry.getKey();
             Node childNode = entry.getValue();
@@ -98,7 +101,7 @@ final class LevelMap {
     /**
      * Represents a single node in a hierarchical data structure, useful for storing relationships
      * between keys and associated log levels. Each node may have child nodes and an optional log level.
-     *
+     * <p>
      * This class is designed to model a tree structure where each node can house multiple children
      * identified by a {@link SharedString} key. Log levels can be dynamically assigned to nodes for
      * structured logging purposes.
@@ -122,7 +125,7 @@ final class LevelMap {
          * @return the same {@code StringBuilder} instance, appended with the string representation of the node
          */
         public StringBuilder appendTo(StringBuilder sb) {
-            sb.append(level.name());
+            sb.append(level == null ? "null" : level.name());
             if (!children.isEmpty()) {
                 for (Map.Entry<SharedString, Node> e : children.entrySet()) {
                     sb.append(" , {").append(e.getKey()).append(" -> ");

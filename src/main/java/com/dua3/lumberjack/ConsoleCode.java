@@ -15,32 +15,46 @@
  */
 package com.dua3.lumberjack;
 
-public final class ConsoleCode {
+import com.dua3.lumberjack.support.AnsiCode;
 
-    public static final ConsoleCode EMPTY = new ConsoleCode("", "");
+/**
+ * A record representing console code sequences defining start and end formatting.
+ *
+ * @param start the start sequence for the console code
+ * @param end the end sequence for the console code
+ */
+public record ConsoleCode(String start, String end) {
 
-    private static final String ANSI_RESET = "\u001B[0m";
+    private static final ConsoleCode EMPTY = new ConsoleCode("", "");
 
-    private final String start;
-    private final String end;
-
-    public ConsoleCode(String start, String end) {
-        this.start = start;
-        this.end = end;
-    }
-
-    public String start() {return start;}
-
-    public String end() {return end;}
-
+    /**
+     * Creates a new instance of {@code ConsoleCode} with the specified start and end sequences.
+     *
+     * @param start the start sequence for the console code
+     * @param end the end sequence for the console code
+     * @return a new {@code ConsoleCode} instance with the provided start and end sequences
+     */
     public static ConsoleCode of(String start, String end) {
         return new ConsoleCode(start, end);
     }
 
+    /**
+     * Creates a {@link ConsoleCode} instance with the specified ANSI start sequence
+     * and a predefined reset sequence as the end sequence.
+     *
+     * @param start the ANSI start sequence for the console code
+     * @return a {@link ConsoleCode} instance using the specified start sequence and
+     *         the ANSI reset sequence as the end sequence
+     */
     public static ConsoleCode ofAnsi(String start) {
-        return new ConsoleCode(start, ANSI_RESET);
+        return new ConsoleCode(start, AnsiCode.reset());
     }
 
+    /**
+     * Returns an empty ConsoleCode instance with no start or end formatting.
+     *
+     * @return a ConsoleCode instance representing an empty formatting sequence.
+     */
     public static ConsoleCode empty() {
         return EMPTY;
     }

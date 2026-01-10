@@ -15,6 +15,7 @@
  */
 plugins {
     id("java-library")
+    id("com.dua3.gradle.jdkprovider") version "0.4.0"
     id("com.dua3.cabe") version "3.1.0"
 }
 
@@ -23,6 +24,10 @@ version = "0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
+}
+
+jdk {
+    version = 21
 }
 
 dependencies {

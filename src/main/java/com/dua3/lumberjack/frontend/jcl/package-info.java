@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * Package containing the jakarta.commons.logging {@link com.dua3.lumberjack.LogHandler} implementation.
+ * Package containing the implementation for the jakarta.commons.logging frontend.
  */
 @NullMarked
 package com.dua3.lumberjack.frontend.jcl;

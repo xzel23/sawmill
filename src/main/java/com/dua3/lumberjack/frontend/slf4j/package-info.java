@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * Package containing the SLF4J {@link com.dua3.lumberjack.LogHandler} implementation.
+ * Package containing the implementation for the SLF4J frontend.
  */
 @NullMarked
 package com.dua3.lumberjack.frontend.slf4j;

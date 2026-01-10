@@ -45,7 +45,7 @@ public final class LogFormat {
      * processed and appended to a {@link StringBuilder} in a format defined by the implementing class.
      */
     private interface LogFormatEntry {
-        void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes);
+        void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes);
 
         String getLog4jFormat();
     }
@@ -191,7 +191,7 @@ public final class LogFormat {
         }
 
         @Override
-        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
             sb.append(literal);
         }
 
@@ -214,7 +214,7 @@ public final class LogFormat {
         }
 
         @Override
-        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
             appendFormatted(sb, lvl.name());
         }
     }
@@ -250,7 +250,7 @@ public final class LogFormat {
         }
 
         @Override
-        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
             String nameToAppend = loggerName;
             if (abbreviationLength > 0) {
                 String[] parts = loggerName.split("\\.");
@@ -303,7 +303,7 @@ public final class LogFormat {
         }
 
         @Override
-        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
             appendFormatted(sb, mrk);
         }
     }
@@ -331,7 +331,7 @@ public final class LogFormat {
         }
 
         @Override
-        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
             appendFormatted(sb, msg.get());
         }
     }
@@ -362,7 +362,7 @@ public final class LogFormat {
         }
 
         @Override
-        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
             appendFormatted(sb, location);
         }
     }
@@ -394,7 +394,7 @@ public final class LogFormat {
         }
 
         @Override
-        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
             if (t != null) {
                 appendFormatted(sb, t.getClass().getName() + ": " + t.getMessage());
                 sb.append(NEWLINE);
@@ -428,7 +428,7 @@ public final class LogFormat {
         }
 
         @Override
-        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
             appendFormatted(sb, consoleCodes.start());
         }
     }
@@ -458,7 +458,7 @@ public final class LogFormat {
         }
 
         @Override
-        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
             appendFormatted(sb, consoleCodes.end());
         }
     }
@@ -492,7 +492,7 @@ public final class LogFormat {
         }
 
         @Override
-        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
             formatter.formatTo(instant.atZone(ZONE_ID), sb);
         }
 
@@ -507,7 +507,7 @@ public final class LogFormat {
      */
     private static class NewlineEntry implements LogFormatEntry {
         @Override
-        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
             sb.append(NEWLINE);
         }
 
@@ -558,21 +558,22 @@ public final class LogFormat {
     /**
      * Formats a log entry.
      *
-     * @param out        the {@link PrintStream} to write the formatted log entry to
-     * @param instant    the timestamp of the log entry
-     * @param loggerName the name of the logger
-     * @param lvl        the log level
-     * @param mrk        the marker
-     * @param msg        the message supplier
-     * @param location   the location information
-     * @param t          the throwable, if any
+     * @param out          the {@link PrintStream} to write the formatted log entry to
+     * @param instant      the timestamp of the log entry
+     * @param loggerName   the name of the logger
+     * @param lvl          the log level
+     * @param mrk          the marker
+     * @param msg          the message supplier
+     * @param mdc          the MDC context
+     * @param location     the location information
+     * @param t            the throwable, if any
      * @param consoleCodes the color codes for the log level (start and end)
      */
-    public void formatLogEntry(PrintStream out, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+    public void formatLogEntry(PrintStream out, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
         StringBuilder sb = SB_THREAD_LOCAL.get();
         sb.setLength(0);
         for (LogFormatEntry entry : entries) {
-            entry.format(sb, instant, loggerName, lvl, mrk, msg, location, t, consoleCodes);
+            entry.format(sb, instant, loggerName, lvl, mrk, mdc, msg, location, t, consoleCodes);
         }
         out.print(sb);
         if (sb.length() > 4096) {

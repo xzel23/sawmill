@@ -16,13 +16,18 @@
 package com.dua3.lumberjack.frontend.log4j;
 
 import com.dua3.lumberjack.LogLevel;
+import com.dua3.lumberjack.MDC;
 import com.dua3.lumberjack.dispatcher.UniversalDispatcher;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.spi.AbstractLogger;
 import org.apache.logging.log4j.spi.StandardLevel;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * LoggerLog4j is an implementation of the Log4J AbstractLogger class that forwards all logging
@@ -30,6 +35,19 @@ import org.jspecify.annotations.Nullable;
  */
 public final class LoggerLog4j extends AbstractLogger {
     private static final UniversalDispatcher DISPATCHER = UniversalDispatcher.getInstance();
+
+    private static final MDC MDC_INSTANCE = new MDC() {
+        @Override
+        public String get(String key) {
+            return ThreadContext.get(key);
+        }
+
+        @Override
+        public Stream<Map.Entry<String, String>> stream() {
+            return ThreadContext.getImmutableContext()
+                    .entrySet().stream();
+        }
+    };
 
     /**
      * Constructs a new LoggerLog4j instance with the specified logger name.
@@ -147,7 +165,7 @@ public final class LoggerLog4j extends AbstractLogger {
 
     @Override
     public void logMessage(String fqcn, Level level, @Nullable Marker marker, Message message, @Nullable Throwable t) {
-        DISPATCHER.dispatchLog4j(name, level, marker, message, t);
+        DISPATCHER.dispatchLog4j(name, level, marker, MDC_INSTANCE, message, t);
     }
 
     @Override

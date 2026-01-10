@@ -72,16 +72,17 @@ public interface LogFilter {
     /**
      * Tests if a log entry, specified by its components, should be processed.
      *
-     * @param instant the timestamp of the log entry
+     * @param instant    the timestamp of the log entry
      * @param loggerName the name of the logger that generated the log entry
-     * @param lvl the log level of the log entry
-     * @param mrk the marker associated with the log entry, can be {@code null}
-     * @param msg the message of the log entry
-     * @param location the location where the log entry was generated, typically a code context such as a class or method name
-     * @param t the throwable associated with the log entry, can be {@code null}
+     * @param lvl        the log level of the log entry
+     * @param mrk        the marker associated with the log entry, can be {@code null}
+     * @param mdc        the MDC associated with the log entry, can be {@code null}
+     * @param msg        the message of the log entry
+     * @param location   the location where the log entry was generated, typically a code context such as a class or method name
+     * @param t          the throwable associated with the log entry, can be {@code null}
      * @return {@code true}, if the log entry should be processed, {@code false} if it should be filtered out
      */
-    boolean test(Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t);
+    boolean test(Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t);
 
     /**
      * Determines if logging is enabled for a specific name, log level, and optional marker.
@@ -133,7 +134,7 @@ final class LogFilterConstants {
         }
 
         @Override
-        public boolean test(Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t) {
+        public boolean test(Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t) {
             return true;
         }
 
@@ -155,7 +156,7 @@ final class LogFilterConstants {
         }
 
         @Override
-        public boolean test(Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t) {
+        public boolean test(Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t) {
             return false;
         }
 

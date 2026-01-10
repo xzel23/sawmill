@@ -20,6 +20,7 @@ import com.dua3.lumberjack.LogFilter;
 import com.dua3.lumberjack.LogFormat;
 import com.dua3.lumberjack.LogHandler;
 import com.dua3.lumberjack.LogLevel;
+import com.dua3.lumberjack.MDC;
 import com.dua3.lumberjack.support.AnsiCode;
 import org.jspecify.annotations.Nullable;
 
@@ -121,10 +122,10 @@ public final class ConsoleHandler implements LogHandler {
     }
 
     @Override
-    public void handle(Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t) {
-        if (filter.test(instant, loggerName, lvl, mrk, msg, location, t)) {
+    public void handle(Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t) {
+        if (filter.test(instant, loggerName, lvl, mrk, mdc, msg, location, t)) {
             ConsoleCode consoleCodes = colorMap.get(lvl);
-            logFormat.formatLogEntry(out, instant, loggerName, lvl, mrk, msg, location, t, consoleCodes);
+            logFormat.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, msg, location, t, consoleCodes);
         }
     }
 

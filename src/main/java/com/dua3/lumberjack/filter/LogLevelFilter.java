@@ -17,6 +17,7 @@ package com.dua3.lumberjack.filter;
 
 import com.dua3.lumberjack.LogFilter;
 import com.dua3.lumberjack.LogLevel;
+import com.dua3.lumberjack.MDC;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
@@ -51,7 +52,7 @@ public final class LogLevelFilter implements LogFilter {
     }
 
     @Override
-    public boolean test(Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t) {
+    public boolean test(Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t) {
         return lvl.ordinal() >= level.ordinal();
     }
 

@@ -1,5 +1,6 @@
 package com.dua3.lumberjack;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -9,7 +10,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -61,6 +64,19 @@ public class LogFormatTest {
         String loggerName = "com.example.service.OrderService";
         LogLevel level = LogLevel.INFO;
         String marker = "AUDIT";
+        MDC mdc = new MDC() {
+            Map<String, String> map = Map.of("userId", "alice", "requestId", "req-123");
+
+            @Override
+            public @Nullable String get(String key) {
+                return map.get(key);
+            }
+
+            @Override
+            public Stream<Map.Entry<String, String>> stream() {
+                return map.entrySet().stream();
+            }
+        };
         Supplier<String> msg = () -> "Order 4711 processed";
         String location = "";
         Throwable t = null;
@@ -68,7 +84,7 @@ public class LogFormatTest {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (PrintStream out = new PrintStream(baos, true, StandardCharsets.UTF_8)) {
-            fmt.formatLogEntry(out, instant, loggerName, level, marker, msg, location, t, consoleCodes);
+            fmt.formatLogEntry(out, instant, loggerName, level, marker, mdc, msg, location, t, consoleCodes);
         }
 
         String actual = baos.toString(StandardCharsets.UTF_8);

@@ -16,6 +16,7 @@
 package com.dua3.lumberjack.frontend.slf4j;
 
 import com.dua3.lumberjack.LogLevel;
+import com.dua3.lumberjack.MDC;
 import com.dua3.lumberjack.dispatcher.UniversalDispatcher;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Marker;
@@ -25,6 +26,9 @@ import org.slf4j.spi.LocationAwareLogger;
 
 import java.io.NotSerializableException;
 import java.io.Serial;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * This class represents a logger implementation using the SLF4J logging framework. It extends the AbstractLogger class.
@@ -39,6 +43,17 @@ public final class LoggerSlf4j extends AbstractLogger {
     private static final long serialVersionUID = 1L;
 
     private static final UniversalDispatcher DISPATCHER = UniversalDispatcher.getInstance();
+    private static final MDC MDC_INSTANCE = new MDC() {
+        @Override
+        public @Nullable String get(String key) {
+            return org.slf4j.MDC.get(key);
+        }
+
+        @Override
+        public Stream<Map.Entry<String, String>> stream() {
+            return org.slf4j.MDC.getCopyOfContextMap().entrySet().stream();
+        }
+    };
 
     /**
      * Constructs a new LoggerSlf4j instance with the specified name and handlers.
@@ -81,7 +96,7 @@ public final class LoggerSlf4j extends AbstractLogger {
 
     @Override
     protected void handleNormalizedLoggingCall(Level level, @Nullable Marker marker, String messagePattern, @Nullable Object @Nullable [] arguments, @Nullable Throwable throwable) {
-        DISPATCHER.dispatchSlf4j(name, level, marker, messagePattern, arguments, throwable);
+        DISPATCHER.dispatchSlf4j(name, level, Objects.toString(marker, ""), MDC_INSTANCE, messagePattern, arguments, throwable);
     }
 
     /**

@@ -19,11 +19,13 @@ import com.dua3.lumberjack.LogDispatcher;
 import com.dua3.lumberjack.LogFilter;
 import com.dua3.lumberjack.LogHandler;
 import com.dua3.lumberjack.LogLevel;
+import com.dua3.lumberjack.MDC;
 import com.dua3.lumberjack.frontend.log4j.LoggerLog4j;
 import com.dua3.lumberjack.frontend.slf4j.LoggerSlf4j;
 import com.dua3.lumberjack.support.Util;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.ReusableMessage;
 import org.jspecify.annotations.Nullable;
@@ -33,10 +35,12 @@ import java.lang.ref.WeakReference;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import java.util.logging.LogRecord;
+import java.util.stream.Stream;
 
 /**
  * A centralized dispatcher for handling and processing log events across different logging frameworks.
@@ -137,7 +141,7 @@ public final class UniversalDispatcher implements LogDispatcher {
      * @param message the log message to be formatted and dispatched; must not be null
      * @param t an optional {@code Throwable} associated with the log event; may be null
      */
-    public void dispatchLog4j(String name, Level level, @Nullable Marker marker, Message message, @Nullable Throwable t) {
+    public void dispatchLog4j(String name, Level level, @Nullable Marker marker, MDC mdc, Message message, @Nullable Throwable t) {
         Instant instant = Instant.now();
         String mrk = marker == null ? "" : marker.getName();
 
@@ -152,11 +156,11 @@ public final class UniversalDispatcher implements LogDispatcher {
 
         LogLevel lvl = LoggerLog4j.translateLog4jLevel(level);
 
-        if (filter.test(instant, name, lvl, mrk, msg, "", t)) {
+        if (filter.test(instant, name, lvl, mrk, mdc, msg, "", t)) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(lvl)) {
-                    handler.handle(instant, name, lvl, mrk, msg, "", t);
+                    handler.handle(instant, name, lvl, mrk, mdc, msg, "", t);
                 }
             }
         }
@@ -174,17 +178,16 @@ public final class UniversalDispatcher implements LogDispatcher {
      * @param arguments an optional array of arguments for the message pattern; may be null or empty
      * @param throwable an optional {@link Throwable} associated with the log event; may be null
      */
-    public void dispatchSlf4j(String loggerName, org.slf4j.event.Level level, org.slf4j.@Nullable Marker marker, String messagePattern, @Nullable Object @Nullable [] arguments, @Nullable Throwable throwable) {
+    public void dispatchSlf4j(String loggerName, org.slf4j.event.Level level, String marker, MDC mdc, String messagePattern, @Nullable Object @Nullable [] arguments, @Nullable Throwable throwable) {
         Instant instant = Instant.now();
-        String mrk = marker == null ? "" : marker.getName();
         Supplier<String> msg = Util.cachingStringSupplier(() -> formatSlf4jMessage(messagePattern, arguments));
 
         LogLevel lvl = LoggerSlf4j.translateSlf4jLevel(level);
-        if (filter.test(instant, loggerName, lvl, mrk, msg, "", throwable)) {
+        if (filter.test(instant, loggerName, lvl, marker, mdc, msg, "", throwable)) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(lvl)) {
-                    handler.handle(instant, loggerName, lvl, mrk, msg, "", throwable);
+                    handler.handle(instant, loggerName, lvl, marker, mdc, msg, "", throwable);
                 }
             }
         }
@@ -220,12 +223,13 @@ public final class UniversalDispatcher implements LogDispatcher {
         Instant instant = Instant.now();
         Supplier<String> msg = Util.cachingStringSupplier(() -> formatJulMessage(logRecord.getMessage(), logRecord.getParameters()));
         LogLevel lvl = translateJulLevel(logRecord.getLevel());
+        MDC mdc = MDC.empty();
 
-        if (filter.test(instant, logRecord.getLoggerName(), lvl, "", msg, "", logRecord.getThrown())) {
+        if (filter.test(instant, logRecord.getLoggerName(), lvl, "", mdc, msg, "", logRecord.getThrown())) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(lvl)) {
-                    handler.handle(instant, logRecord.getLoggerName(), lvl, "", msg, "", logRecord.getThrown());
+                    handler.handle(instant, logRecord.getLoggerName(), lvl, "", mdc, msg, "", logRecord.getThrown());
                 }
             }
         }
@@ -284,12 +288,13 @@ public final class UniversalDispatcher implements LogDispatcher {
     public void dispatchJcl(String name, LogLevel level, @Nullable Object message, @Nullable Throwable t) {
         Instant instant = Instant.now();
         Supplier<String> msg = Util.cachingStringSupplier(() -> String.valueOf(message));
+        MDC mdc = MDC.empty();
 
-        if (filter.test(instant, name, level, "", msg, "", t)) {
+        if (filter.test(instant, name, level, "", mdc, msg, "", t)) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(level)) {
-                    handler.handle(instant, name, level, "", msg, "", t);
+                    handler.handle(instant, name, level, "", mdc, msg, "", t);
                 }
             }
         }

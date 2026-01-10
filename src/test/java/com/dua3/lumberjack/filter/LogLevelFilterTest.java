@@ -1,6 +1,7 @@
 package com.dua3.lumberjack.filter;
 
 import com.dua3.lumberjack.LogLevel;
+import com.dua3.lumberjack.MDC;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -47,7 +48,7 @@ class LogLevelFilterTest {
         assertEquals(expected, filter.isEnabled("any.logger", level, "any.marker"),
                 () -> "isEnabled failed for threshold " + threshold + " and level " + level);
 
-        assertEquals(expected, filter.test(Instant.now(), "any.logger", level, "any.marker", () -> "msg", "location", null),
+        assertEquals(expected, filter.test(Instant.now(), "any.logger", level, "any.marker", MDC.empty(), () -> "msg", "location", null),
                 () -> "test failed for threshold " + threshold + " and level " + level);
     }
 }

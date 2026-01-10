@@ -84,69 +84,71 @@ tasks.test {
 allprojects {
     // --- PUBLISHING ---
 
-    configure<PublishingExtension> {
-        // Repositories for publishing
-        repositories {
-            // Sonatype snapshots for snapshot versions
-            if (isSnapshot) {
-                maven {
-                    name = "sonatypeSnapshots"
-                    url = uri("https://central.sonatype.com/repository/maven-snapshots/")
-                    credentials {
-                        username = System.getenv("SONATYPE_USERNAME")
-                        password = System.getenv("SONATYPE_PASSWORD")
+    if (pluginManager.hasPlugin("maven-publish")) {
+        configure<PublishingExtension> {
+            // Repositories for publishing
+            repositories {
+                // Sonatype snapshots for snapshot versions
+                if (isSnapshot) {
+                    maven {
+                        name = "sonatypeSnapshots"
+                        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+                        credentials {
+                            username = System.getenv("SONATYPE_USERNAME")
+                            password = System.getenv("SONATYPE_PASSWORD")
+                        }
                     }
+                }
+
+                // Always add root-level staging directory for JReleaser
+                maven {
+                    name = "stagingDirectory"
+                    url = rootProject.layout.buildDirectory.dir("staging-deploy").get().asFile.toURI()
                 }
             }
 
-            // Always add root-level staging directory for JReleaser
-            maven {
-                name = "stagingDirectory"
-                url = rootProject.layout.buildDirectory.dir("staging-deploy").get().asFile.toURI()
-            }
-        }
+            // Publications for non-BOM projects
+            if (!project.name.endsWith("-bom")) {
+                publications {
+                    create<MavenPublication>("mavenJava") {
+                        from(components["java"])
 
-        // Publications for non-BOM projects
-        if (!project.name.endsWith("-bom")) {
-            publications {
-                create<MavenPublication>("mavenJava") {
-                    from(components["java"])
+                        groupId = Meta.GROUP
+                        artifactId = project.name
+                        version = project.version.toString()
 
-                    groupId = Meta.GROUP
-                    artifactId = project.name
-                    version = project.version.toString()
-
-                    pom {
-                        name.set(project.name)
-                        description.set(project.description)
-                        url.set(Meta.SCM)
-
-                        licenses {
-                            license {
-                                name.set(Meta.LICENSE_NAME)
-                                url.set(Meta.LICENSE_URL)
-                            }
-                        }
-
-                        developers {
-                            developer {
-                                id.set(Meta.DEVELOPER_ID)
-                                name.set(Meta.DEVELOPER_NAME)
-                                email.set(Meta.DEVELOPER_EMAIL)
-                                organization.set(Meta.ORGANIZATION_NAME)
-                                organizationUrl.set(Meta.ORGANIZATION_URL)
-                            }
-                        }
-
-                        scm {
-                            connection.set("scm:git:${Meta.SCM}")
-                            developerConnection.set("scm:git:${Meta.SCM}")
+                        pom {
+                            name.set(project.name)
+                            description.set(project.description)
                             url.set(Meta.SCM)
-                        }
 
-                        withXml {
-                            val root = asNode()
-                            root.appendNode("inceptionYear", "2019")
+                            licenses {
+                                license {
+                                    name.set(Meta.LICENSE_NAME)
+                                    url.set(Meta.LICENSE_URL)
+                                }
+                            }
+
+                            developers {
+                                developer {
+                                    id.set(Meta.DEVELOPER_ID)
+                                    name.set(Meta.DEVELOPER_NAME)
+                                    email.set(Meta.DEVELOPER_EMAIL)
+                                    organization.set(Meta.ORGANIZATION_NAME)
+                                    organizationUrl.set(Meta.ORGANIZATION_URL)
+                                }
+                            }
+
+                            scm {
+                                connection.set("scm:git:${Meta.SCM}")
+                                developerConnection.set("scm:git:${Meta.SCM}")
+                                url.set(Meta.SCM)
+                            }
+
+                            withXml {
+                                val root = asNode()
+                                root.appendNode("inceptionYear", "2019")
+                            }
                         }
                     }
                 }
@@ -156,19 +158,21 @@ allprojects {
 
     // Signing configuration deferred until after evaluation
     afterEvaluate {
-        configure<SigningExtension> {
-            val shouldSign = !project.version.toString().lowercase().contains("snapshot")
-            setRequired(shouldSign && gradle.taskGraph.hasTask("publish"))
+        if (pluginManager.hasPlugin("signing")) {
+            configure<SigningExtension> {
+                val shouldSign = !project.version.toString().lowercase().contains("snapshot")
+                setRequired(shouldSign && gradle.taskGraph.hasTask("publish"))
 
-            val publishing = project.extensions.getByType<PublishingExtension>()
+                val publishing = project.extensions.findByType<PublishingExtension>() ?: return@configure
 
-            if (project.name.endsWith("-bom")) {
-                if (publishing.publications.names.contains("bomPublication")) {
-                    sign(publishing.publications["bomPublication"])
-                }
-            } else {
-                if (publishing.publications.names.contains("mavenJava")) {
-                    sign(publishing.publications["mavenJava"])
+                if (project.name.endsWith("-bom")) {
+                    if (publishing.publications.names.contains("bomPublication")) {
+                        sign(publishing.publications["bomPublication"])
+                    }
+                } else {
+                    if (publishing.publications.names.contains("mavenJava")) {
+                        sign(publishing.publications["mavenJava"])
+                    }
                 }
             }
         }
@@ -176,11 +180,13 @@ allprojects {
 
     // set the project description after evaluation because it is not yet visible when the POM is first created
     afterEvaluate {
-        project.extensions.configure<PublishingExtension> {
-            publications.withType<MavenPublication> {
-                pom {
-                    if (description.orNull.isNullOrBlank()) {
-                        description.set(project.description ?: "No description provided")
+        if (pluginManager.hasPlugin("maven-publish")) {
+            project.extensions.configure<PublishingExtension> {
+                publications.withType<MavenPublication> {
+                    pom {
+                        if (description.orNull.isNullOrBlank()) {
+                            description.set(project.description ?: "No description provided")
+                        }
                     }
                 }
             }
@@ -188,10 +194,10 @@ allprojects {
     }
 
     // SpotBugs for non-BOM projects
-    if (!project.name.endsWith("-bom")) {
+    if (!project.name.endsWith("-bom") && pluginManager.hasPlugin("com.github.spotbugs")) {
 
         // === SPOTBUGS ===
-        spotbugs {
+        configure<com.github.spotbugs.snom.SpotBugsExtension> {
             excludeFilter.set(rootProject.file("spotbugs-exclude.xml"))
         }
 

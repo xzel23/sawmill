@@ -14,3 +14,9 @@
  * limitations under the License.
  */
 rootProject.name = "lumberjack-logger"
+
+include("samples:jul")
+include("samples:jcl")
+include("samples:log4j")
+include("samples:slf4j")
+include("samples:all")

@@ -73,15 +73,25 @@ public final class Lumberjack {
 
     private static void wireJcl() {
         System.setProperty("org.apache.commons.logging.LogFactory", "org.apache.commons.logging.impl.LogFactoryImpl");
-        System.setProperty("org.apache.commons.logging.Log", "com.dua3.utility.logging.backend.jcl.LoggerJcl");
+        System.setProperty("org.apache.commons.logging.Log", "com.dua3.lumberjack.frontend.jcl.LoggerJcl");
     }
 
     private static void wireLog4j() {
-        System.setProperty("log4j2.loggerContextFactory", "com.dua3.utility.logging.backend.log4j.Log4jLoggerContextFactory");
+        System.setProperty("log4j2.loggerContextFactory", "com.dua3.lumberjack.frontend.log4j.Log4jLoggerContextFactory");
     }
 
     private static void wireSlf4j() {
-        System.setProperty("slf4j.provider", "com.dua3.utility.logging.backend.slf4j.LoggingServiceProviderSlf4j");
+        System.setProperty("slf4j.provider", "com.dua3.lumberjack.frontend.slf4j.LoggingServiceProviderSlf4j");
+    }
+
+    /**
+     * Initializes the logging framework.
+     * <p>
+     * This method does nothing by itelf. But by calling it, execution of the
+     * static initializer is triggered.
+     */
+    public static void init() {
+        // nothing to do - initialization is done in the static initializer
     }
 
     /**

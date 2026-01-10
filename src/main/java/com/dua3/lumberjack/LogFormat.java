@@ -279,6 +279,57 @@ public final class LogFormat {
     }
 
     /**
+     * Represents a log format entry for the thread name.
+     */
+    private static class ThreadEntry extends AbstractLogFormatEntry {
+        ThreadEntry(int minWidth, int maxWidth, boolean leftAlign) {
+            super("t", minWidth, maxWidth, leftAlign);
+        }
+
+        @Override
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+            appendFormatted(sb, Thread.currentThread().getName());
+        }
+    }
+
+    /**
+     * Represents a log format entry for the MDC (Mapped Diagnostic Context).
+     */
+    private static class MdcEntry extends AbstractLogFormatEntry {
+        private final @Nullable String key;
+
+        MdcEntry(int minWidth, int maxWidth, boolean leftAlign, @Nullable String key) {
+            super("X", minWidth, maxWidth, leftAlign);
+            this.key = key;
+        }
+
+        @Override
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
+            if (key != null) {
+                appendFormatted(sb, mdc.get(key));
+            } else {
+                StringBuilder mdcSb = new StringBuilder();
+                mdc.stream().forEach(e -> {
+                    if (mdcSb.length() > 0) {
+                        mdcSb.append(", ");
+                    }
+                    mdcSb.append(e.getKey()).append("=").append(e.getValue());
+                });
+                appendFormatted(sb, mdcSb.toString());
+            }
+        }
+
+        @Override
+        public String getLog4jFormat() {
+            String format = super.getLog4jFormat();
+            if (key != null) {
+                format = format.replace(prefix, prefix + "{" + key + "}");
+            }
+            return format;
+        }
+    }
+
+    /**
      * Represents a log format entry that formats and appends a marker value to a log output.
      * A marker is a string that can be used in log messages to provide additional context or categorization.
      */
@@ -630,6 +681,8 @@ public final class LogFormat {
                     case "marker" -> entries.add(new MarkerEntry(minWidth, maxWidth, leftAlign));
                     case "m", "msg", "message" -> entries.add(new MessageEntry(minWidth, maxWidth, leftAlign));
                     case "l", "location" -> entries.add(new LocationEntry(minWidth, maxWidth, leftAlign));
+                    case "t", "thread" -> entries.add(new ThreadEntry(minWidth, maxWidth, leftAlign));
+                    case "X", "mdc" -> entries.add(new MdcEntry(minWidth, maxWidth, leftAlign, options));
                     case "ex", "exception", "throwable" ->
                             entries.add(new ExceptionEntry(minWidth, maxWidth, leftAlign));
                     case "Cstart" -> entries.add(new ColorStartEntry(minWidth, maxWidth, leftAlign));

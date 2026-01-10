@@ -56,6 +56,8 @@ public class LogFormatTest {
             }
     )
     void testFormat(String pattern, String expected) {
+        String threadName = Thread.currentThread().getName();
+        String updatedExpected = expected.replace("main", threadName);
         LogFormat fmt = new LogFormat(pattern);
 
         Instant instant = LocalDateTime.of(2026, 1, 10, 14, 23, 41, 123_000_000)
@@ -89,6 +91,6 @@ public class LogFormatTest {
 
         String actual = baos.toString(StandardCharsets.UTF_8);
 
-        assertEquals(expected, actual);
+        assertEquals(updatedExpected, actual);
     }
 }

@@ -163,7 +163,7 @@ public final class LoggingConfiguration {
      *
      * @param properties the {@link Properties} object containing configuration settings
      */
-    private void configure(Properties properties){
+    private void configure(Properties properties) {
         handleProperty(properties, LOGGING_FILTERS, s -> parseList(s, name -> name), (List<String> list) -> list.forEach(name -> addFilter(properties, name)), List::of);
         handleProperty(properties, LOGGING_HANDLERS, s -> parseList(s, name -> name), (List<String> list) -> list.forEach(name -> addHandler(properties, name)), List::of);
     }

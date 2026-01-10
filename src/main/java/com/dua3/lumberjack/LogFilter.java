@@ -42,7 +42,7 @@ public interface LogFilter {
      *
      * @return a LogEntryFilter that allows no log entries to pass through
      */
-    static LogFilter nonePass() { return LogFilterConstants.NONE_PASS_FILTER; }
+    static LogFilter nonePass() {return LogFilterConstants.NONE_PASS_FILTER;}
 
     /**
      * Combines multiple {@code LogFilter} instances into a single filter.

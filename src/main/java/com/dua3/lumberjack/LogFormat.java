@@ -87,6 +87,7 @@ public final class LogFormat {
 
         private static final int N_SPACES = 20;
         private static final String SPACES = " ".repeat(N_SPACES);
+
         /**
          * Appends a specified number of spaces to the given StringBuilder.
          *
@@ -584,7 +585,8 @@ public final class LogFormat {
                     case "marker" -> entries.add(new MarkerEntry(minWidth, maxWidth, leftAlign));
                     case "m", "msg", "message" -> entries.add(new MessageEntry(minWidth, maxWidth, leftAlign));
                     case "l", "location" -> entries.add(new LocationEntry(minWidth, maxWidth, leftAlign));
-                    case "ex", "exception", "throwable" -> entries.add(new ExceptionEntry(minWidth, maxWidth, leftAlign));
+                    case "ex", "exception", "throwable" ->
+                            entries.add(new ExceptionEntry(minWidth, maxWidth, leftAlign));
                     case "Cstart" -> entries.add(new ColorStartEntry(minWidth, maxWidth, leftAlign));
                     case "Cend" -> entries.add(new ColorEndEntry(minWidth, maxWidth, leftAlign));
                     case "d" -> entries.add(new DateEntry(options != null ? options : ""));

@@ -242,7 +242,7 @@ public final class UniversalDispatcher implements LogDispatcher {
      * @return the formatted message if formatting is successful, or the raw pattern if
      *         no parameters are provided or an error occurs during formatting
      */
-    private static String formatJulMessage(String pattern, @Nullable Object @Nullable[] params) {
+    private static String formatJulMessage(String pattern, @Nullable Object @Nullable [] params) {
         if (params == null || params.length == 0) {
             return pattern;
         }
@@ -266,7 +266,7 @@ public final class UniversalDispatcher implements LogDispatcher {
         if (val <= java.util.logging.Level.FINEST.intValue()) return LogLevel.TRACE;
         if (val <= java.util.logging.Level.FINE.intValue()) return LogLevel.DEBUG;
         if (val <= java.util.logging.Level.INFO.intValue()) return LogLevel.INFO;
-        if (val <= java.util.logging.Level.WARNING.intValue())return LogLevel.WARN;
+        if (val <= java.util.logging.Level.WARNING.intValue()) return LogLevel.WARN;
         return LogLevel.ERROR;
     }
 

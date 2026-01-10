@@ -52,7 +52,7 @@ public final class CombinedFilter implements LogFilter {
 
     @Override
     public boolean test(Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t) {
-        for (LogFilter filter: filters) {
+        for (LogFilter filter : filters) {
             if (!filter.test(instant, loggerName, lvl, mrk, msg, location, t)) {
                 return false;
             }
@@ -62,7 +62,7 @@ public final class CombinedFilter implements LogFilter {
 
     @Override
     public boolean isEnabled(String loggerName, LogLevel logLevel, @Nullable String marker) {
-        for (LogFilter filter: filters) {
+        for (LogFilter filter : filters) {
             if (!filter.isEnabled(loggerName, logLevel, marker)) {
                 return false;
             }
@@ -72,7 +72,7 @@ public final class CombinedFilter implements LogFilter {
 
     @Override
     public boolean isLevelEnabled(LogLevel logLevel) {
-        for (LogFilter filter: filters) {
+        for (LogFilter filter : filters) {
             if (!filter.isLevelEnabled(logLevel)) {
                 return false;
             }
@@ -82,7 +82,7 @@ public final class CombinedFilter implements LogFilter {
 
     @Override
     public boolean isMarkerEnabled(@Nullable String marker) {
-        for (LogFilter filter: filters) {
+        for (LogFilter filter : filters) {
             if (!filter.isMarkerEnabled(marker)) {
                 return false;
             }

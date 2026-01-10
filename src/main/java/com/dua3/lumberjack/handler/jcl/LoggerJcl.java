@@ -84,7 +84,8 @@ public final class LoggerJcl implements Log {
 
     @Override
     public boolean isErrorEnabled() {
-        return DISPATCHER.isEnabled(name, LogLevel.ERROR, null);}
+        return DISPATCHER.isEnabled(name, LogLevel.ERROR, null);
+    }
 
     @Override
     public boolean isFatalEnabled() {
@@ -94,7 +95,8 @@ public final class LoggerJcl implements Log {
     // Implement warn, debug, trace, fatal similarly...
     @Override
     public boolean isInfoEnabled() {
-        return DISPATCHER.isEnabled(name, LogLevel.INFO, null);}
+        return DISPATCHER.isEnabled(name, LogLevel.INFO, null);
+    }
 
     @Override
     public boolean isTraceEnabled() {

@@ -36,11 +36,11 @@ public final class Util {
         return supplier instanceof CachingStringSupplier cs ? cs : new CachingStringSupplier(supplier);
     }
 
-    private static final class CachingStringSupplier implements Supplier<String>{
+    private static final class CachingStringSupplier implements Supplier<String> {
         private final Supplier<String> supplier;
         private @Nullable String s;
 
-        CachingStringSupplier (Supplier<String> supplier) {
+        CachingStringSupplier(Supplier<String> supplier) {
             this.supplier = supplier;
             s = null;
         }

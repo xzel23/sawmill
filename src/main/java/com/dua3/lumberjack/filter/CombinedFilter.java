@@ -1,0 +1,77 @@
+package com.dua3.lumberjack.filter;
+
+import com.dua3.lumberjack.LogFilter;
+import com.dua3.lumberjack.LogLevel;
+import org.jspecify.annotations.Nullable;
+
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+/**
+ * The CombinedFilter class represents a composite implementation of the LogFilter interface,
+ * allowing multiple filters to be combined into a single filter.
+ * <p>
+ * The composed filter only passes log entries if all the constituent filters allow them.
+ */
+public final class CombinedFilter implements LogFilter {
+    private final String name;
+    private final LogFilter[] filters;
+
+    /**
+     * Constructs a CombinedFilter instance by combining multiple LogFilter instances.
+     * The resulting filter only passes log entries if all the given filters permit them.
+     *
+     * @param filters the array of LogFilter instances to be combined; each filter is applied sequentially
+     */
+    public CombinedFilter(LogFilter... filters) {
+        this.name = Arrays.stream(filters).map(LogFilter::name).collect(Collectors.joining(",", "combined(", ")"));
+        this.filters = filters;
+    }
+
+    @Override
+    public String name() {
+        return name;
+    }
+
+    @Override
+    public boolean test(Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t) {
+        for (LogFilter filter: filters) {
+            if (!filter.test(instant, loggerName, lvl, mrk, msg, location, t)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled(String loggerName, LogLevel logLevel, @Nullable String marker) {
+        for (LogFilter filter: filters) {
+            if (!filter.isEnabled(loggerName, logLevel, marker)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isLevelEnabled(LogLevel logLevel) {
+        for (LogFilter filter: filters) {
+            if (!filter.isLevelEnabled(logLevel)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isMarkerEnabled(@Nullable String marker) {
+        for (LogFilter filter: filters) {
+            if (!filter.isMarkerEnabled(marker)) {
+                return false;
+            }
+        }
+        return true;
+    }
+}

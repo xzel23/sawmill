@@ -1,0 +1,143 @@
+package com.dua3.lumberjack;
+
+import com.dua3.lumberjack.support.AnsiCode;
+import org.jspecify.annotations.Nullable;
+
+import java.io.PrintStream;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
+/**
+ * The ConsoleHandler class is an implementation of the LogEntryHandler interface.
+ * It handles log entries by writing them to the console.
+ */
+public final class ConsoleHandler implements LogHandler {
+
+    private static final Map<LogLevel, ConsoleCode> COLOR_MAP_COLORED = Map.of(
+            LogLevel.TRACE, ConsoleCode.ofAnsi(AnsiCode.italic(true)),
+            LogLevel.DEBUG, ConsoleCode.empty(),
+            LogLevel.INFO, ConsoleCode.of(AnsiCode.bold(true), ""),
+            LogLevel.WARN, ConsoleCode.ofAnsi(AnsiCode.fg(0xFF, 0x45, 0x00) + AnsiCode.bold(true)),
+            LogLevel.ERROR, ConsoleCode.ofAnsi(AnsiCode.fg(0x8B, 0x00, 0x00) + AnsiCode.bold(true))
+    );
+
+    private static final Map<LogLevel, ConsoleCode> COLOR_MAP_MONOCHROME = Map.of(
+            LogLevel.TRACE, ConsoleCode.empty(),
+            LogLevel.DEBUG, ConsoleCode.empty(),
+            LogLevel.INFO, ConsoleCode.empty(),
+            LogLevel.WARN, ConsoleCode.empty(),
+            LogLevel.ERROR, ConsoleCode.empty()
+    );
+    public static final ZoneId ZONE_ID = ZoneId.systemDefault();
+
+    private final String name;
+    private final PrintStream out;
+    private volatile LogFilter filter = LogFilter.allPass();
+    private volatile Map<LogLevel, ConsoleCode> colorMap = new EnumMap<>(LogLevel.class);
+    private final LogFormat logFormat = new LogFormat();
+
+    /**
+     * Set the format string.
+     * @param format the format string
+     */
+    public void setFormat(String format) {
+        logFormat.setFormat(format);
+    }
+
+    /**
+     * Get the format string.
+     * @return the format string
+     */
+    public String getFormat() {
+        return logFormat.getFormat();
+    }
+
+
+    /**
+     * Constructs a ConsoleHandler with the specified PrintStream and colored flag.
+     *
+     * @param name    the name of the handler
+     * @param out     the PrintStream to which log messages will be written
+     * @param colored flag indicating whether to use colored brackets for different log levels
+     */
+    public ConsoleHandler(String name, PrintStream out, boolean colored) {
+        this.name = name;
+        this.out = out;
+        setColored(colored);
+    }
+
+    /**
+     * Constructs a ConsoleHandler with the specified PrintStream and colored flag.
+     *
+     * @param out     the PrintStream to which log messages will be written
+     * @param colored flag indicating whether to use colored brackets for different log levels
+     * @deprecated use {@link #ConsoleHandler(String, PrintStream, boolean)} instead
+     */
+    @Deprecated(forRemoval = true)
+    public ConsoleHandler(PrintStream out, boolean colored) {
+        this(ConsoleHandler.class.getSimpleName(), out, colored);
+    }
+
+    @Override
+    public String name() {
+        return name;
+    }
+
+    /**
+     * Retrieves the PrintStream for log entries.
+     * @return the PrintStream for log entries
+     */
+    public PrintStream getPrintStream() {
+        return out;
+    }
+
+    @Override
+    public void handle(Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t) {
+        if (filter.test(instant, loggerName, lvl, mrk, msg, location, t)) {
+            ConsoleCode consoleCodes = colorMap.get(lvl);
+            logFormat.formatLogEntry(out, instant, loggerName, lvl, mrk, msg, location, t, consoleCodes);
+        }
+    }
+
+    /**
+     * Enable/Disable colored output using ANSI codes.
+     * @param colored true, if output use colors
+     */
+    public void setColored(boolean colored) {
+        colorMap = colored ? COLOR_MAP_COLORED : COLOR_MAP_MONOCHROME;
+    }
+
+    /**
+     * Check if colored output is enabled.
+     * @return true, if colored output is enabled
+     */
+    public boolean isColored() {
+        return colorMap == COLOR_MAP_COLORED;
+    }
+
+    /**
+     * Sets the filter for log entries.
+     *
+     * @param filter the LogFilter to be set as the filter for log entries
+     */
+    @Override
+    public void setFilter(LogFilter filter) {
+        this.filter = filter;
+    }
+
+    /**
+     * Retrieves the filter for log entries.
+     * <p>
+     * This method returns the current filter that is being used to determine if a log entry should
+     * be included or excluded.
+     *
+     * @return the LogFilter that is currently set as the filter for log entries.
+     */
+    @Override
+    public LogFilter getFilter() {
+        return filter;
+    }
+}

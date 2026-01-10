@@ -61,7 +61,7 @@ class FiltersTest {
             " , SOME, false"
     })
     void testMarkerFilter(String filterMarker, String logMarker, boolean expected) {
-        MarkerFilter filter = new MarkerFilter("test", m -> (filterMarker == null ? "" : filterMarker).equals(m));
+        MarkerFilter filter = new MarkerFilter("test", (filterMarker == null ? "" : filterMarker)::equals);
 
         assertEquals(expected, filter.isMarkerEnabled(logMarker));
         assertEquals(expected, filter.isEnabled("logger", LogLevel.INFO, logMarker));

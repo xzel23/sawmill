@@ -36,8 +36,7 @@ public final class LogFormat {
     private static final ZoneId ZONE_ID = ZoneId.systemDefault();
 
     private static final ThreadLocal<StringBuilder> SB_THREAD_LOCAL = ThreadLocal.withInitial(() -> new StringBuilder(256));
-    public static final String DEFAULT_FORMAT = "%Cstart%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%nCend%n";
-    public static final String ALTERNATIVE_FORMAT = "%Cstart[%p] %d{HH:mm:ss} %c %marker %m %l %ex%Cend%n";
+    public static final String DEFAULT_FORMAT = "%Cstart%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger - %msg%Cend%n";
 
     /**
      * Defines an interface for formatting log entries in a customizable and extensible manner.

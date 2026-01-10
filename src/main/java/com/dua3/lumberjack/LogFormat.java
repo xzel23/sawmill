@@ -227,6 +227,8 @@ public final class LogFormat {
      * settings. If truncation is required, the logger name will be truncated from the left.
      */
     private static class LoggerEntry extends AbstractLogFormatEntry {
+        private final int abbreviationLength;
+
         /**
          * Constructs an instance of LoggerEntry, a specialized log format entry
          * for formatting and appending logger names to log messages.
@@ -240,14 +242,39 @@ public final class LogFormat {
          * @param leftAlign a flag indicating whether the logger name should be left-aligned.
          *                  If true, padding will be added to the right of the logger name;
          *                  otherwise, padding will be added to the left.
+         * @param abbreviationLength the number of rightmost components of the logger name to keep.
          */
-        LoggerEntry(int minWidth, int maxWidth, boolean leftAlign) {
+        LoggerEntry(int minWidth, int maxWidth, boolean leftAlign, int abbreviationLength) {
             super("c", minWidth, maxWidth, leftAlign);
+            this.abbreviationLength = abbreviationLength;
         }
 
         @Override
         public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, String mrk, Supplier<String> msg, String location, @Nullable Throwable t, ConsoleCode consoleCodes) {
-            appendFormatted(sb, loggerName, true);
+            String nameToAppend = loggerName;
+            if (abbreviationLength > 0) {
+                String[] parts = loggerName.split("\\.");
+                if (parts.length > abbreviationLength) {
+                    StringBuilder abbreviated = new StringBuilder();
+                    for (int i = parts.length - abbreviationLength; i < parts.length; i++) {
+                        if (abbreviated.length() > 0) {
+                            abbreviated.append('.');
+                        }
+                        abbreviated.append(parts[i]);
+                    }
+                    nameToAppend = abbreviated.toString();
+                }
+            }
+            appendFormatted(sb, nameToAppend, true);
+        }
+
+        @Override
+        public String getLog4jFormat() {
+            String format = super.getLog4jFormat();
+            if (abbreviationLength > 0) {
+                format = format.replace(prefix, prefix + "{" + abbreviationLength + "}");
+            }
+            return format;
         }
     }
 
@@ -592,7 +619,13 @@ public final class LogFormat {
 
                 switch (type) {
                     case "p", "level" -> entries.add(new LevelEntry(minWidth, maxWidth, leftAlign));
-                    case "c", "logger" -> entries.add(new LoggerEntry(minWidth, maxWidth, leftAlign));
+                    case "c", "logger" -> {
+                        int abbreviationLength = 0;
+                        if (options != null && options.matches("\\d+")) {
+                            abbreviationLength = Integer.parseInt(options);
+                        }
+                        entries.add(new LoggerEntry(minWidth, maxWidth, leftAlign, abbreviationLength));
+                    }
                     case "marker" -> entries.add(new MarkerEntry(minWidth, maxWidth, leftAlign));
                     case "m", "msg", "message" -> entries.add(new MessageEntry(minWidth, maxWidth, leftAlign));
                     case "l", "location" -> entries.add(new LocationEntry(minWidth, maxWidth, leftAlign));

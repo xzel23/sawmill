@@ -1,3 +1,5 @@
+import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
+
 /*
  * Copyright 2026 Axel Howind - axh@dua3.com
  *
@@ -15,12 +17,43 @@
  */
 plugins {
     id("java-library")
+    id("maven-publish")
+    id("signing")
     id("com.dua3.gradle.jdkprovider") version "0.4.0"
     id("com.dua3.cabe") version "3.1.0"
 }
 
-group = "com.dua3.lumberjack"
-version = "0.1-SNAPSHOT"
+/////////////////////////////////////////////////////////////////////////////
+// Meta data object
+/////////////////////////////////////////////////////////////////////////////
+
+object Meta {
+    const val VERSION = "0.1-SNAPSHOT"
+    const val DESCRIPTION = "Lumberjack universal logging backend"
+    const val INCEPTION_YEAR = "2026"
+    const val GROUP = "com.dua3.lumberjack"
+    const val SCM = "https://github.com/xzel23/lumberjack.git"
+    const val LICENSE_NAME = "The Apache Software License, Version 2.0"
+    const val LICENSE_URL = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+    const val DEVELOPER_ID = "axh"
+    const val DEVELOPER_NAME = "Axel Howind"
+    const val DEVELOPER_EMAIL = "axh@dua3.com"
+    const val ORGANIZATION_NAME = "dua3"
+    const val ORGANIZATION_URL = "https://www.dua3.com"
+}
+
+group = Meta.GROUP
+version = Meta.VERSION
+
+// check for development/release version
+fun isDevelopmentVersion(versionString: String): Boolean {
+    val v = versionString.toDefaultLowerCase()
+    val markers = listOf("snapshot", "alpha", "beta")
+    return markers.any { marker -> v.contains("-$marker") || v.contains(".$marker") }
+}
+
+val isReleaseVersion = !isDevelopmentVersion(project.version.toString())
+val isSnapshot = project.version.toString().toDefaultLowerCase().contains("snapshot")
 
 repositories {
     mavenCentral()
@@ -45,4 +78,111 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+allprojects {
+    // --- PUBLISHING ---
+
+    configure<PublishingExtension> {
+        // Repositories for publishing
+        repositories {
+            // Sonatype snapshots for snapshot versions
+            if (isSnapshot) {
+                maven {
+                    name = "sonatypeSnapshots"
+                    url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+                    credentials {
+                        username = System.getenv("SONATYPE_USERNAME")
+                        password = System.getenv("SONATYPE_PASSWORD")
+                    }
+                }
+            }
+
+            // Always add root-level staging directory for JReleaser
+            maven {
+                name = "stagingDirectory"
+                url = rootProject.layout.buildDirectory.dir("staging-deploy").get().asFile.toURI()
+            }
+        }
+
+        // Publications for non-BOM projects
+        if (!project.name.endsWith("-bom")) {
+            publications {
+                create<MavenPublication>("mavenJava") {
+                    from(components["java"])
+
+                    groupId = Meta.GROUP
+                    artifactId = project.name
+                    version = project.version.toString()
+
+                    pom {
+                        name.set(project.name)
+                        description.set(project.description)
+                        url.set(Meta.SCM)
+
+                        licenses {
+                            license {
+                                name.set(Meta.LICENSE_NAME)
+                                url.set(Meta.LICENSE_URL)
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id.set(Meta.DEVELOPER_ID)
+                                name.set(Meta.DEVELOPER_NAME)
+                                email.set(Meta.DEVELOPER_EMAIL)
+                                organization.set(Meta.ORGANIZATION_NAME)
+                                organizationUrl.set(Meta.ORGANIZATION_URL)
+                            }
+                        }
+
+                        scm {
+                            connection.set("scm:git:${Meta.SCM}")
+                            developerConnection.set("scm:git:${Meta.SCM}")
+                            url.set(Meta.SCM)
+                        }
+
+                        withXml {
+                            val root = asNode()
+                            root.appendNode("inceptionYear", "2019")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Signing configuration deferred until after evaluation
+    afterEvaluate {
+        configure<SigningExtension> {
+            val shouldSign = !project.version.toString().lowercase().contains("snapshot")
+            setRequired(shouldSign && gradle.taskGraph.hasTask("publish"))
+
+            val publishing = project.extensions.getByType<PublishingExtension>()
+
+            if (project.name.endsWith("-bom")) {
+                if (publishing.publications.names.contains("bomPublication")) {
+                    sign(publishing.publications["bomPublication"])
+                }
+            } else {
+                if (publishing.publications.names.contains("mavenJava")) {
+                    sign(publishing.publications["mavenJava"])
+                }
+            }
+        }
+    }
+
+    // set the project description after evaluation because it is not yet visible when the POM is first created
+    afterEvaluate {
+        project.extensions.configure<PublishingExtension> {
+            publications.withType<MavenPublication> {
+                pom {
+                    if (description.orNull.isNullOrBlank()) {
+                        description.set(project.description ?: "No description provided")
+                    }
+                }
+            }
+        }
+    }
 }

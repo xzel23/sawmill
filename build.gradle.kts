@@ -21,6 +21,7 @@ plugins {
     id("signing")
     id("com.dua3.gradle.jdkprovider") version "0.4.0"
     id("com.dua3.cabe") version "3.1.0"
+    id("com.github.spotbugs") version "6.4.8"
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -182,6 +183,31 @@ allprojects {
                         description.set(project.description ?: "No description provided")
                     }
                 }
+            }
+        }
+    }
+
+    // SpotBugs for non-BOM projects
+    if (!project.name.endsWith("-bom")) {
+
+        // === SPOTBUGS ===
+        spotbugs {
+            excludeFilter.set(rootProject.file("spotbugs-exclude.xml"))
+        }
+
+        tasks.named<com.github.spotbugs.snom.SpotBugsTask>("spotbugsMain") {
+            reports.create("html") {
+                required.set(true)
+                outputLocation.set(layout.buildDirectory.file("reports/spotbugs/main.html"))
+                setStylesheet("fancy-hist.xsl")
+            }
+        }
+
+        tasks.named<com.github.spotbugs.snom.SpotBugsTask>("spotbugsTest") {
+            reports.create("html") {
+                required.set(true)
+                outputLocation.set(layout.buildDirectory.file("reports/spotbugs/test.html"))
+                setStylesheet("fancy-hist.xsl")
             }
         }
     }

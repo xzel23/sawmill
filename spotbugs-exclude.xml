@@ -1,0 +1,31 @@
+<FindBugsFilter>
+
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP"/>
+        <Class name="com.dua3.lumberjack.handler.ConsoleHandler"/>
+        <Method name="getOut"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+        <Class name="com.dua3.lumberjack.handler.ConsoleHandler"/>
+        <Method name="&lt;init&gt;"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP"/>
+        <Class name="com.dua3.lumberjack.frontend.slf4j.LoggingServiceProviderSlf4j"/>
+        <Method name="getMDCAdapter"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="MS_EXPOSE_REP"/>
+        <Class name="com.dua3.lumberjack.Lumberjack"/>
+        <Method name="getDispatcher"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+</FindBugsFilter>

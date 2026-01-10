@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dua3.lumberjack.handler.slf4j;
+package com.dua3.lumberjack.frontend.slf4j;
 
 import org.slf4j.ILoggerFactory;
 

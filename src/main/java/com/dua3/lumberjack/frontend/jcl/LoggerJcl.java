@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dua3.lumberjack.handler.jcl;
+package com.dua3.lumberjack.frontend.jcl;
 
 import com.dua3.lumberjack.LogLevel;
 import com.dua3.lumberjack.dispatcher.UniversalDispatcher;

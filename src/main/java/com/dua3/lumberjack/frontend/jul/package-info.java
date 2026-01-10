@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 /**
- * Package containing the SLF4J {@link com.dua3.lumberjack.LogHandler} implementation.
+ * Package containing the java.util.logging {@link com.dua3.lumberjack.LogHandler} implementation.
  */
 @NullMarked
-package com.dua3.lumberjack.handler.slf4j;
+package com.dua3.lumberjack.frontend.jul;
 
 import org.jspecify.annotations.NullMarked;

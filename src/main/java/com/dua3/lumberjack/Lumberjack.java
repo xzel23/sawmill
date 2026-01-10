@@ -16,7 +16,7 @@
 package com.dua3.lumberjack;
 
 import com.dua3.lumberjack.dispatcher.UniversalDispatcher;
-import com.dua3.lumberjack.handler.jul.JulHandler;
+import com.dua3.lumberjack.frontend.jul.JulHandler;
 
 import java.io.IOException;
 import java.io.InputStream;

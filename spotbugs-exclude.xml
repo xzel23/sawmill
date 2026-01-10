@@ -28,4 +28,9 @@
         <Bug pattern="CT_CONSTRUCTOR_THROW"/>
     </Match>
 
+    <Match>
+        <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+        <Class name="com.dua3.lumberjack.filter.FiltersTest"/>
+    </Match>
+
 </FindBugsFilter>

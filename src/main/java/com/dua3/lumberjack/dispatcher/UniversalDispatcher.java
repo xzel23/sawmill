@@ -25,7 +25,6 @@ import com.dua3.lumberjack.frontend.slf4j.LoggerSlf4j;
 import com.dua3.lumberjack.support.Util;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.ReusableMessage;
 import org.jspecify.annotations.Nullable;
@@ -35,12 +34,10 @@ import java.lang.ref.WeakReference;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import java.util.logging.LogRecord;
-import java.util.stream.Stream;
 
 /**
  * A centralized dispatcher for handling and processing log events across different logging frameworks.

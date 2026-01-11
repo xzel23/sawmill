@@ -153,11 +153,11 @@ public final class UniversalDispatcher implements LogDispatcher {
 
         LogLevel lvl = LoggerLog4j.translateLog4jLevel(level);
 
-        if (filter.test(instant, name, lvl, mrk, mdc, msg, "", t)) {
+        if (filter.test(instant, name, lvl, mrk, mdc, "", msg, t)) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(lvl)) {
-                    handler.handle(instant, name, lvl, mrk, mdc, msg, "", t);
+                    handler.handle(instant, name, lvl, mrk, mdc, "", msg, t);
                 }
             }
         }
@@ -180,11 +180,11 @@ public final class UniversalDispatcher implements LogDispatcher {
         Supplier<String> msg = Util.cachingStringSupplier(() -> formatSlf4jMessage(messagePattern, arguments));
 
         LogLevel lvl = LoggerSlf4j.translateSlf4jLevel(level);
-        if (filter.test(instant, loggerName, lvl, marker, mdc, msg, "", throwable)) {
+        if (filter.test(instant, loggerName, lvl, marker, mdc, "", msg, throwable)) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(lvl)) {
-                    handler.handle(instant, loggerName, lvl, marker, mdc, msg, "", throwable);
+                    handler.handle(instant, loggerName, lvl, marker, mdc, "", msg, throwable);
                 }
             }
         }
@@ -221,11 +221,11 @@ public final class UniversalDispatcher implements LogDispatcher {
         Supplier<String> msg = Util.cachingStringSupplier(() -> formatJulMessage(logRecord.getMessage(), logRecord.getParameters()));
         LogLevel lvl = translateJulLevel(logRecord.getLevel());
 
-        if (filter.test(instant, logRecord.getLoggerName(), lvl, "", null, msg, "", logRecord.getThrown())) {
+        if (filter.test(instant, logRecord.getLoggerName(), lvl, "", null, "", msg, logRecord.getThrown())) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(lvl)) {
-                    handler.handle(instant, logRecord.getLoggerName(), lvl, "", null, msg, "", logRecord.getThrown());
+                    handler.handle(instant, logRecord.getLoggerName(), lvl, "", null, "", msg, logRecord.getThrown());
                 }
             }
         }
@@ -285,11 +285,11 @@ public final class UniversalDispatcher implements LogDispatcher {
         Instant instant = Instant.now();
         Supplier<String> msg = Util.cachingStringSupplier(() -> String.valueOf(message));
 
-        if (filter.test(instant, name, level, "", null, msg, "", t)) {
+        if (filter.test(instant, name, level, "", null, "", msg, t)) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(level)) {
-                    handler.handle(instant, name, level, "", null, msg, "", t);
+                    handler.handle(instant, name, level, "", null, "", msg, t);
                 }
             }
         }

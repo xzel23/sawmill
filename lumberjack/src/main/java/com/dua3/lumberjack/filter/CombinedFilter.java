@@ -52,9 +52,9 @@ public final class CombinedFilter implements LogFilter {
     }
 
     @Override
-    public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t) {
+    public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, String location, Supplier<String> msg, @Nullable Throwable t) {
         for (LogFilter filter : filters) {
-            if (!filter.test(instant, loggerName, lvl, mrk, mdc, msg, location, t)) {
+            if (!filter.test(instant, loggerName, lvl, mrk, mdc, location, msg, t)) {
                 return false;
             }
         }

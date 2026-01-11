@@ -122,10 +122,10 @@ public final class ConsoleHandler implements LogHandler {
     }
 
     @Override
-    public void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t) {
-        if (filter.test(instant, loggerName, lvl, mrk, mdc, msg, location, t)) {
+    public void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, String location, Supplier<String> msg, @Nullable Throwable t) {
+        if (filter.test(instant, loggerName, lvl, mrk, mdc, location, msg, t)) {
             ConsoleCode consoleCodes = colorMap.get(lvl);
-            logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, msg, location, t, consoleCodes);
+            logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, location, msg, t, consoleCodes);
         }
     }
 

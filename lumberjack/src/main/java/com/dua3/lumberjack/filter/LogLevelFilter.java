@@ -52,7 +52,7 @@ public final class LogLevelFilter implements LogFilter {
     }
 
     @Override
-    public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t) {
+    public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, String location, Supplier<String> msg, @Nullable Throwable t) {
         return lvl.ordinal() >= level.ordinal();
     }
 

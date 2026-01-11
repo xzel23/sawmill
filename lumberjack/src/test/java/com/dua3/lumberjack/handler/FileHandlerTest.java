@@ -24,8 +24,8 @@ class FileHandlerTest {
         Path logFile = tempDir.resolve("test.log");
         try (FileHandler handler = new FileHandler("test", logFile, false)) {
             handler.setPattern("%msg%n");
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, () -> "Hello, World!", "location", null);
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, () -> "Second line", "location", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, "location", () -> "Hello, World!", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, "location", () -> "Second line", null);
         }
 
         assertTrue(Files.exists(logFile));
@@ -42,7 +42,7 @@ class FileHandlerTest {
 
         try (FileHandler handler = new FileHandler("test", logFile, true)) {
             handler.setPattern("%msg%n");
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, () -> "Second line", "location", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, "location", () -> "Second line", null);
         }
 
         List<String> lines = Files.readAllLines(logFile);
@@ -58,7 +58,7 @@ class FileHandlerTest {
 
         try (FileHandler handler = new FileHandler("test", logFile, false)) {
             handler.setPattern("%msg%n");
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, () -> "New content", "location", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, "location", () -> "New content", null);
         }
 
         List<String> lines = Files.readAllLines(logFile);
@@ -75,13 +75,13 @@ class FileHandlerTest {
             handler.setMaxBackupIndex(2);
 
             // Each log entry is "Line X\n" which is about 7 bytes.
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, () -> "Line 1", "location", null); // ~7 bytes
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, () -> "Line 2", "location", null); // ~14 bytes -> rotation should occur BEFORE or AFTER?
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, "location", () -> "Line 1", null); // ~7 bytes
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, "location", () -> "Line 2", null); // ~14 bytes -> rotation should occur BEFORE or AFTER?
             // In my implementation, checkRotation is called BEFORE writing.
             // 1st entry: size 0, max 10 -> no rotate. Write "Line 1\n". currentSize = 7.
             // 2nd entry: size 7, max 10 -> no rotate. Write "Line 2\n". currentSize = 14.
             // 3rd entry: size 14, max 10 -> ROTATE. Write "Line 3\n" to NEW file.
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, () -> "Line 3", "location", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, "location", () -> "Line 3", null);
         }
 
         assertTrue(Files.exists(logFile));
@@ -105,10 +105,10 @@ class FileHandlerTest {
             handler.setMaxEntries(2);
             handler.setMaxBackupIndex(2);
 
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, () -> "Line 1", "location", null);
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, () -> "Line 2", "location", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, "location", () -> "Line 1", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, "location", () -> "Line 2", null);
             // 3rd entry triggers rotation because currentEntries (2) >= maxEntries (2)
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, () -> "Line 3", "location", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, "location", () -> "Line 3", null);
         }
 
         assertTrue(Files.exists(logFile));
@@ -127,12 +127,12 @@ class FileHandlerTest {
             // Use a very small time unit if possible, but ChronoUnit.SECONDS is the smallest truncatedTo supports usually
             handler.setRotationTimeUnit(ChronoUnit.SECONDS);
 
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, () -> "Line 1", "location", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, "location", () -> "Line 1", null);
 
             // Wait for next second
             Thread.sleep(1100);
 
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, () -> "Line 2", "location", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, "location", () -> "Line 2", null);
         }
 
         assertTrue(Files.exists(logFile));

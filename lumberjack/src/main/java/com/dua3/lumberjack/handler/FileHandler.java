@@ -145,12 +145,12 @@ public class FileHandler implements LogHandler, AutoCloseable {
     }
 
     @Override
-    public synchronized void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t) {
-        if (filter.test(instant, loggerName, lvl, mrk, mdc, msg, location, t)) {
+    public synchronized void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, String location, Supplier<String> msg, @Nullable Throwable t) {
+        if (filter.test(instant, loggerName, lvl, mrk, mdc, location, msg, t)) {
             checkRotation(instant);
             if (out != null) {
                 long sizeBefore = currentSize;
-                logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, msg, location, t, null);
+                logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, location, msg, t, null);
                 out.flush();
                 try {
                     currentSize = Files.size(path);

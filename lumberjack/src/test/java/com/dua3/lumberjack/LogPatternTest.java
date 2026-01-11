@@ -86,7 +86,7 @@ public class LogPatternTest {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (PrintStream out = new PrintStream(baos, true, StandardCharsets.UTF_8)) {
-            fmt.formatLogEntry(out, instant, loggerName, level, marker, mdc, msg, location, t, consoleCodes);
+            fmt.formatLogEntry(out, instant, loggerName, level, marker, mdc, location, msg, t, consoleCodes);
         }
 
         String actual = baos.toString(StandardCharsets.UTF_8);

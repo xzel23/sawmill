@@ -12,6 +12,7 @@ subprojects {
 
     tasks.withType<JavaCompile> {
         dependsOn(":lumberjack:cabe")
+        options.release.set(21)
     }
 
     configure<JavaApplication> {

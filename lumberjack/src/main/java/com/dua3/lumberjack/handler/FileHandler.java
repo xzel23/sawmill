@@ -21,6 +21,8 @@ import com.dua3.lumberjack.LogHandler;
 import com.dua3.lumberjack.LogLevel;
 import com.dua3.lumberjack.LogPattern;
 import com.dua3.lumberjack.MDC;
+import com.dua3.lumberjack.support.CountingOutputStream;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedOutputStream;
@@ -33,6 +35,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Supplier;
 
 /**
@@ -48,7 +51,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
     private volatile LogFilter filter = LogFilter.allPass();
 
     private @Nullable PrintStream out;
-    private long currentSize;
+    private final LongAdder currentSize = new LongAdder();
     private long currentEntries;
     private @Nullable Instant nextRotationTime;
 
@@ -89,10 +92,25 @@ public class FileHandler implements LogHandler, AutoCloseable {
             options = new StandardOpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE};
         }
 
-        this.out = new PrintStream(new BufferedOutputStream(Files.newOutputStream(path, options)), true, StandardCharsets.UTF_8);
-        this.currentSize = Files.size(path);
-        this.currentEntries = 0;
+        this.out = newStream(options);
         updateNextRotationTime();
+    }
+
+    private synchronized PrintStream newStream(StandardOpenOption[] options) throws IOException {
+        try {
+            return new PrintStream(
+                    new CountingOutputStream(
+                            new BufferedOutputStream(Files.newOutputStream(path, options)),
+                            currentSize
+                    ),
+                    true,
+                    StandardCharsets.UTF_8
+            );
+        } finally {
+            currentEntries = 0;
+            currentSize.reset();
+            currentSize.add(Files.size(path));
+        }
     }
 
     private void updateNextRotationTime() {
@@ -153,12 +171,6 @@ public class FileHandler implements LogHandler, AutoCloseable {
                 if (out != null) {
                     logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, location, msg, t, null);
                     out.flush();
-                    try {
-                        currentSize = Files.size(path);
-                    } catch (IOException e) {
-                        // Fallback if we cannot get size
-                        currentSize += 100; // estimated
-                    }
                     currentEntries++;
                 }
             }
@@ -166,7 +178,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
     }
 
     private void checkRotation(Instant now) {
-        boolean rotate = (maxFileSize > 0 && currentSize >= maxFileSize)
+        boolean rotate = (maxFileSize > 0 && currentSize.longValue() >= maxFileSize)
                 || (maxEntries > 0 && currentEntries >= maxEntries)
                 || (nextRotationTime != null && !now.isBefore(nextRotationTime));
 

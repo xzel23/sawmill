@@ -33,4 +33,9 @@
         <Class name="com.dua3.lumberjack.filter.FiltersTest"/>
     </Match>
 
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+        <Class name="com.dua3.lumberjack.support.CountingOutputStream"/>
+    </Match>
+
 </FindBugsFilter>

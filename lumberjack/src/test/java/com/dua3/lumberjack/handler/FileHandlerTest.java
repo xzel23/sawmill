@@ -137,4 +137,43 @@ class FileHandlerTest {
         assertTrue(Files.exists(logFile));
         assertTrue(Files.exists(tempDir.resolve("test-time.log.1")));
     }
+
+    @Test
+    void testSizeRotationWithBuffering() throws IOException {
+        Path logFile = tempDir.resolve("test-size-buffered.log");
+        try (FileHandler handler = new FileHandler("test", logFile, false)) {
+            handler.setPattern("%msg"); // No newline to keep size predictable
+            handler.setMaxFileSize(10); 
+            handler.setMaxBackupIndex(2);
+
+            // Write 5 bytes
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "12345", null);
+            // currentSize should be 5 now, even if not flushed to disk yet.
+            
+            // Write 6 more bytes -> total 11, should trigger rotation on NEXT handle call if we check BEFORE write.
+            // Wait, in handle():
+            // synchronized (this) {
+            //     checkRotation(instant);
+            //     if (out != null) {
+            //         logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, location, msg, t, null);
+            //         out.flush();
+            //         currentEntries++;
+            //     }
+            // }
+            // checkRotation(instant) checks currentSize.
+            
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "678901", null);
+            // 1st entry: size 0, max 10 -> no rotate. Write "12345". currentSize = 5.
+            // 2nd entry: size 5, max 10 -> no rotate. Write "678901". currentSize = 11.
+            
+            // 3rd entry: size 11, max 10 -> ROTATE.
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "ROTATE", null);
+        }
+
+        assertTrue(Files.exists(logFile));
+        assertTrue(Files.exists(tempDir.resolve("test-size-buffered.log.1")));
+
+        assertEquals("ROTATE", Files.readString(logFile));
+        assertEquals("12345678901", Files.readString(tempDir.resolve("test-size-buffered.log.1")));
+    }
 }

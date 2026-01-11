@@ -91,7 +91,7 @@ public final class LoggerNamePrefixFilter implements LogFilter {
     }
 
     @Override
-    public boolean test(Instant instant, String loggerName, LogLevel lvl, String mrk, MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t) {
+    public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, Supplier<String> msg, String location, @Nullable Throwable t) {
         return (lvl.ordinal() >= level.ordinal() && lvl.ordinal() >= getLevel(loggerName).ordinal());
     }
 

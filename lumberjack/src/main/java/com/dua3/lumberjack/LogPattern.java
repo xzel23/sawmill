@@ -256,7 +256,7 @@ public final class LogPattern {
                 if (parts.length > abbreviationLength) {
                     StringBuilder abbreviated = new StringBuilder();
                     for (int i = parts.length - abbreviationLength; i < parts.length; i++) {
-                        if (abbreviated.length() > 0) {
+                        if (!abbreviated.isEmpty()) {
                             abbreviated.append('.');
                         }
                         abbreviated.append(parts[i]);
@@ -312,7 +312,7 @@ public final class LogPattern {
             } else {
                 StringBuilder mdcSb = new StringBuilder();
                 mdc.stream().forEach(e -> {
-                    if (mdcSb.length() > 0) {
+                    if (!mdcSb.isEmpty()) {
                         mdcSb.append(", ");
                     }
                     mdcSb.append(e.getKey()).append("=").append(e.getValue());
@@ -580,7 +580,7 @@ public final class LogPattern {
      * Constructs a LogPattern using the default pattern.
      */
     public LogPattern() {
-        setPattern(DEFAULT_PATTERN);
+        this.entries = parseLog4jPatternString(DEFAULT_PATTERN);
     }
 
     /**
@@ -589,7 +589,7 @@ public final class LogPattern {
      * @param pattern the format pattern in Log4J style, which may include placeholders and literals
      */
     public LogPattern(String pattern) {
-        setPattern(pattern);
+        this.entries = parseLog4jPatternString(pattern);
     }
 
     /**

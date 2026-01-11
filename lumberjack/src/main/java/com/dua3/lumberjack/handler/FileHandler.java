@@ -206,7 +206,8 @@ public class FileHandler implements LogHandler, AutoCloseable {
     }
 
     private Path getBackupPath(int index) {
-        String fileName = path.getFileName().toString();
+        Path fileName = path.getFileName();
+        assert fileName != null : "This should not have happened, path should always have a file name here - please report an issue";
         String newFileName = fileName + "." + index;
         return path.resolveSibling(newFileName);
     }

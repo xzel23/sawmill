@@ -7,11 +7,11 @@ subprojects {
     }
 
     dependencies {
-        "implementation"(project(":"))
+        "implementation"(project(":lumberjack"))
     }
 
     tasks.withType<JavaCompile> {
-        dependsOn(":cabe")
+        dependsOn(":lumberjack:cabe")
     }
 
     configure<JavaApplication> {

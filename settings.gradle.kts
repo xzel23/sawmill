@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-rootProject.name = "lumberjack-logger"
+rootProject.name = "sawmill"
 
-include("samples:jul")
-include("samples:jcl")
-include("samples:log4j")
-include("samples:slf4j")
-include("samples:all")
+include("lumberjack")
+include("lumberjack:samples:jul")
+include("lumberjack:samples:jcl")
+include("lumberjack:samples:log4j")
+include("lumberjack:samples:slf4j")
+include("lumberjack:samples:all")

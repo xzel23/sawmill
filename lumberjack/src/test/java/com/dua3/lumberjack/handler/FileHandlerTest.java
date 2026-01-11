@@ -145,23 +145,13 @@ class FileHandlerTest {
             handler.setPattern("%msg"); // No newline to keep size predictable
             handler.setMaxFileSize(10); 
             handler.setMaxBackupIndex(2);
-
+            handler.setFlushEveryNEntries(1); // Ensure flush happens for this test
+            
             // Write 5 bytes
             handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "12345", null);
             // currentSize should be 5 now, even if not flushed to disk yet.
             
             // Write 6 more bytes -> total 11, should trigger rotation on NEXT handle call if we check BEFORE write.
-            // Wait, in handle():
-            // synchronized (this) {
-            //     checkRotation(instant);
-            //     if (out != null) {
-            //         logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, location, msg, t, null);
-            //         out.flush();
-            //         currentEntries++;
-            //     }
-            // }
-            // checkRotation(instant) checks currentSize.
-            
             handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "678901", null);
             // 1st entry: size 0, max 10 -> no rotate. Write "12345". currentSize = 5.
             // 2nd entry: size 5, max 10 -> no rotate. Write "678901". currentSize = 11.
@@ -175,5 +165,42 @@ class FileHandlerTest {
 
         assertEquals("ROTATE", Files.readString(logFile));
         assertEquals("12345678901", Files.readString(tempDir.resolve("test-size-buffered.log.1")));
+    }
+
+    @Test
+    void testFlushStrategies() throws IOException {
+        Path logFile = tempDir.resolve("test-flush.log");
+        
+        // 1. Test flush on high level
+        try (FileHandler handler = new FileHandler("test", logFile, false)) {
+            handler.setPattern("%msg");
+            handler.setFlushLevel(LogLevel.ERROR);
+            handler.setFlushEveryNEntries(-1); // Disable entry-based flush
+
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "info", null);
+            // Should be in buffer, not necessarily on disk. 
+            // Files.size() might still show 0 or old size if OS/JVM hasn't flushed.
+            // But wait, our check for flush is logical. 
+            
+            handler.handle(Instant.now(), "test", LogLevel.ERROR, null, null, null, () -> "error", null);
+            // This should trigger flush.
+        }
+        assertEquals("infoerror", Files.readString(logFile));
+
+        // 2. Test flush every N entries
+        Files.delete(logFile);
+        try (FileHandler handler = new FileHandler("test", logFile, false)) {
+            handler.setPattern("%msg");
+            handler.setFlushLevel(LogLevel.ERROR); // Only flush ERROR or higher
+            handler.setFlushEveryNEntries(3);
+
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "1", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "2", null);
+            // No flush yet
+            
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "3", null);
+            // This should trigger flush (3rd entry)
+        }
+        assertEquals("123", Files.readString(logFile));
     }
 }

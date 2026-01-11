@@ -59,6 +59,9 @@ public class FileHandler implements LogHandler, AutoCloseable {
     private volatile long maxEntries = -1;
     private volatile @Nullable ChronoUnit rotationTimeUnit;
     private volatile int maxBackupIndex = 1;
+    private volatile LogLevel flushLevel = LogLevel.INFO;
+    private volatile int flushEveryNEntries = 1;
+    private int entriesSinceLastFlush = 0;
 
     /**
      * Constructs a new FileHandler.
@@ -103,7 +106,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
                             new BufferedOutputStream(Files.newOutputStream(path, options)),
                             currentSize
                     ),
-                    true,
+                    false,
                     StandardCharsets.UTF_8
             );
         } finally {
@@ -158,6 +161,24 @@ public class FileHandler implements LogHandler, AutoCloseable {
         this.maxBackupIndex = maxBackupIndex;
     }
 
+    /**
+     * Sets the log level at which a flush is triggered.
+     *
+     * @param flushLevel the minimum log level to trigger a flush
+     */
+    public void setFlushLevel(LogLevel flushLevel) {
+        this.flushLevel = Objects.requireNonNull(flushLevel);
+    }
+
+    /**
+     * Sets the number of entries after which a flush is triggered.
+     *
+     * @param flushEveryNEntries the number of entries, or -1 to disable entry-based flushing
+     */
+    public void setFlushEveryNEntries(int flushEveryNEntries) {
+        this.flushEveryNEntries = flushEveryNEntries;
+    }
+
     @Override
     public String name() {
         return name;
@@ -170,11 +191,22 @@ public class FileHandler implements LogHandler, AutoCloseable {
                 checkRotation(instant);
                 if (out != null) {
                     logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, location, msg, t, null);
-                    out.flush();
                     currentEntries++;
+                    entriesSinceLastFlush++;
+                    if (shouldFlush(lvl)) {
+                        out.flush();
+                        entriesSinceLastFlush = 0;
+                    }
                 }
             }
         }
+    }
+
+    private boolean shouldFlush(LogLevel lvl) {
+        if (lvl.ordinal() >= flushLevel.ordinal()) {
+            return true;
+        }
+        return flushEveryNEntries > 0 && entriesSinceLastFlush >= flushEveryNEntries;
     }
 
     private void checkRotation(Instant now) {
@@ -195,6 +227,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
         if (out != null) {
             out.close();
             out = null;
+            entriesSinceLastFlush = 0;
         }
 
         // Rename existing backup files
@@ -236,6 +269,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
         if (out != null) {
             out.close();
             out = null;
+            entriesSinceLastFlush = 0;
         }
     }
 

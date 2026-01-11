@@ -287,4 +287,68 @@ public class FileHandler implements LogHandler, AutoCloseable {
     public synchronized String getPattern() {
         return logPattern.getPattern();
     }
+
+    /**
+     * Gets the path to the log file.
+     * @return the path to the log file
+     */
+    public Path getPath() {
+        return path;
+    }
+
+    /**
+     * Gets whether to append to the log file.
+     * @return true if appending, false otherwise
+     */
+    public boolean isAppend() {
+        return append;
+    }
+
+    /**
+     * Gets the maximum file size before rotation.
+     * @return the maximum file size in bytes, or -1 for no limit
+     */
+    public synchronized long getMaxFileSize() {
+        return maxFileSize;
+    }
+
+    /**
+     * Gets the maximum number of entries before rotation.
+     * @return the maximum number of entries, or -1 for no limit
+     */
+    public synchronized long getMaxEntries() {
+        return maxEntries;
+    }
+
+    /**
+     * Gets the rotation time unit.
+     * @return the rotation time unit, or null for no time-based rotation
+     */
+    public synchronized @Nullable ChronoUnit getRotationTimeUnit() {
+        return rotationTimeUnit;
+    }
+
+    /**
+     * Gets the maximum number of backup files to keep.
+     * @return the maximum number of backup files
+     */
+    public synchronized int getMaxBackupIndex() {
+        return maxBackupIndex;
+    }
+
+    /**
+     * Gets the log level at which a flush is triggered.
+     * @return the minimum log level to trigger a flush
+     */
+    public synchronized LogLevel getFlushLevel() {
+        return flushLevel;
+    }
+
+    /**
+     * Gets the number of entries after which a flush is triggered.
+     * @return the number of entries, or -1 if entry-based flushing is disabled
+     */
+    public synchronized int getFlushEveryNEntries() {
+        return flushEveryNEntries;
+    }
 }

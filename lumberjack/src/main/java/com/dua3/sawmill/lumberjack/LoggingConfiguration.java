@@ -17,8 +17,14 @@ package com.dua3.sawmill.lumberjack;
 
 import com.dua3.sawmill.lumberjack.filter.LoggerNamePrefixFilter;
 import com.dua3.sawmill.lumberjack.handler.ConsoleHandler;
+import com.dua3.sawmill.lumberjack.handler.FileHandler;
 
+import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -123,6 +129,53 @@ public final class LoggingConfiguration {
      * Constant representing automatic setting colored output for the console handler.
      */
     public static final String COLOR_AUTO = "auto";
+
+    // *** FileHandler configuration ***
+
+    /**
+     * Configuration key for specifying the path to the log file.
+     */
+    public static final String LOGGER_FILE_PATH = "path";
+
+    /**
+     * Configuration key for specifying whether to append to the log file.
+     */
+    public static final String LOGGER_FILE_APPEND = "append";
+
+    /**
+     * Configuration key for specifying the maximum file size before rotation.
+     */
+    public static final String LOGGER_FILE_MAX_SIZE = "max-size";
+
+    /**
+     * Configuration key for specifying the maximum number of entries before rotation.
+     */
+    public static final String LOGGER_FILE_MAX_ENTRIES = "max-entries";
+
+    /**
+     * Configuration key for specifying the rotation time unit.
+     */
+    public static final String LOGGER_FILE_ROTATION_UNIT = "rotation-unit";
+
+    /**
+     * Configuration key for specifying the maximum number of backup files to keep.
+     */
+    public static final String LOGGER_FILE_MAX_BACKUPS = "max-backups";
+
+    /**
+     * Configuration key for specifying the log level at which a flush is triggered.
+     */
+    public static final String LOGGER_FILE_FLUSH_LEVEL = "flush-level";
+
+    /**
+     * Configuration key for specifying the number of entries after which a flush is triggered.
+     */
+    public static final String LOGGER_FILE_FLUSH_ENTRIES = "flush-entries";
+
+    /**
+     * Configuration key for specifying the pattern used by the file logger.
+     */
+    public static final String LOGGER_FILE_PATTERN = "pattern";
 
     // *** filter configuration ***
 
@@ -249,12 +302,32 @@ public final class LoggingConfiguration {
                 ConsoleHandler consoleHandler = new ConsoleHandler(name, stream, colored);
                 yield consoleHandler;
             }
+            case "file" -> {
+                String sPath = properties.getProperty(prefix + LOGGER_FILE_PATH, name + ".log").strip();
+                Path path = Paths.get(sPath);
+                boolean append = Boolean.parseBoolean(properties.getProperty(prefix + LOGGER_FILE_APPEND, "true").strip());
+                try {
+                    FileHandler fileHandler = new FileHandler(name, path, append);
+                    handleProperty(properties, prefix + LOGGER_FILE_MAX_SIZE, Long::parseLong, fileHandler::setMaxFileSize, () -> -1L);
+                    handleProperty(properties, prefix + LOGGER_FILE_MAX_ENTRIES, Long::parseLong, fileHandler::setMaxEntries, () -> -1L);
+                    handleProperty(properties, prefix + LOGGER_FILE_ROTATION_UNIT, s -> ChronoUnit.valueOf(s.toUpperCase()), fileHandler::setRotationTimeUnit, () -> null);
+                    handleProperty(properties, prefix + LOGGER_FILE_MAX_BACKUPS, Integer::parseInt, fileHandler::setMaxBackupIndex, () -> 1);
+                    handleProperty(properties, prefix + LOGGER_FILE_FLUSH_LEVEL, LogLevel::valueOf, fileHandler::setFlushLevel, () -> LogLevel.INFO);
+                    handleProperty(properties, prefix + LOGGER_FILE_FLUSH_ENTRIES, Integer::parseInt, fileHandler::setFlushEveryNEntries, () -> 1);
+                    yield fileHandler;
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
             default -> throw new IllegalArgumentException("unknown handler type for handler '" + name + "' : " + sType);
         };
 
         handleProperty(properties, prefix + "filter", filters::get, handler::setFilter, LogFilter::allPass);
         if (handler instanceof ConsoleHandler consoleHandler) {
             handleProperty(properties, prefix + LOGGER_CONSOLE_PATTERN, s -> s, consoleHandler::setPattern, () -> LogPattern.DEFAULT_PATTERN);
+        }
+        if (handler instanceof FileHandler fileHandler) {
+            handleProperty(properties, prefix + LOGGER_FILE_PATTERN, s -> s, fileHandler::setPattern, () -> LogPattern.DEFAULT_PATTERN);
         }
 
         handlers.put(name, handler);
@@ -330,6 +403,20 @@ public final class LoggingConfiguration {
                 properties.setProperty(prefix + LOGGER_CONSOLE_STREAM, sStream);
                 properties.setProperty(prefix + LOGGER_CONSOLE_COLORED, String.valueOf(consoleHandler.isColored()));
                 properties.setProperty(prefix + LOGGER_CONSOLE_PATTERN, consoleHandler.getPattern());
+            } else if (handler instanceof FileHandler fileHandler) {
+                properties.setProperty(prefix + LOGGING_TYPE, "file");
+                properties.setProperty(prefix + LOGGER_FILE_PATH, fileHandler.getPath().toString());
+                properties.setProperty(prefix + LOGGER_FILE_APPEND, String.valueOf(fileHandler.isAppend()));
+                properties.setProperty(prefix + LOGGER_FILE_MAX_SIZE, String.valueOf(fileHandler.getMaxFileSize()));
+                properties.setProperty(prefix + LOGGER_FILE_MAX_ENTRIES, String.valueOf(fileHandler.getMaxEntries()));
+                ChronoUnit rotationUnit = fileHandler.getRotationTimeUnit();
+                if (rotationUnit != null) {
+                    properties.setProperty(prefix + LOGGER_FILE_ROTATION_UNIT, rotationUnit.name());
+                }
+                properties.setProperty(prefix + LOGGER_FILE_MAX_BACKUPS, String.valueOf(fileHandler.getMaxBackupIndex()));
+                properties.setProperty(prefix + LOGGER_FILE_FLUSH_LEVEL, fileHandler.getFlushLevel().name());
+                properties.setProperty(prefix + LOGGER_FILE_FLUSH_ENTRIES, String.valueOf(fileHandler.getFlushEveryNEntries()));
+                properties.setProperty(prefix + LOGGER_FILE_PATTERN, fileHandler.getPattern());
             }
         }
     }

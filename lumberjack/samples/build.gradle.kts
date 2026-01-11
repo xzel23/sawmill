@@ -15,6 +15,6 @@ subprojects {
     }
 
     configure<JavaApplication> {
-        mainClass.set("com.dua3.lumberjack.samples." + project.name + ".Main")
+        mainClass.set("com.dua3.sawmill.lumberjack.samples." + project.name + ".Main")
     }
 }

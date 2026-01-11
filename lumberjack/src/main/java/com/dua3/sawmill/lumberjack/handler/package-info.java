@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-import org.jspecify.annotations.NullMarked;
-
 /**
- * Module-info for the Lumberjack logging backend library.
+ * Package containing {@link com.dua3.sawmill.lumberjack.LogHandler} implementations.
  */
 @NullMarked
-module lumberjack.logger {
-    exports com.dua3.sawmill.lumberjack;
-    exports com.dua3.sawmill.lumberjack.filter;
-    exports com.dua3.sawmill.lumberjack.handler;
+package com.dua3.sawmill.lumberjack.handler;
 
-    requires org.jspecify;
-
-    requires static java.logging;
-    requires static org.apache.commons.logging;
-    requires static org.apache.logging.log4j;
-    requires static org.slf4j;
-    requires java.xml;
-}
+import org.jspecify.annotations.NullMarked;

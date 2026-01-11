@@ -13,23 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.jspecify.annotations.NullMarked;
+package com.dua3.sawmill.lumberjack;
 
 /**
- * Module-info for the Lumberjack logging backend library.
+ * Enumeration representing different log levels.
  */
-@NullMarked
-module lumberjack.logger {
-    exports com.dua3.sawmill.lumberjack;
-    exports com.dua3.sawmill.lumberjack.filter;
-    exports com.dua3.sawmill.lumberjack.handler;
-
-    requires org.jspecify;
-
-    requires static java.logging;
-    requires static org.apache.commons.logging;
-    requires static org.apache.logging.log4j;
-    requires static org.slf4j;
-    requires java.xml;
+public enum LogLevel {
+    /**
+     * TRACE log level.
+     */
+    TRACE,
+    /**
+     * DEBUG log level.
+     */
+    DEBUG,
+    /**
+     * INFO log level.
+     */
+    INFO,
+    /**
+     * WARN log level.
+     */
+    WARN,
+    /**
+     * ERROR log level.
+     */
+    ERROR
 }

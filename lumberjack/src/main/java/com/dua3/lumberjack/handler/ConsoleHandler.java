@@ -16,6 +16,7 @@
 package com.dua3.lumberjack.handler;
 
 import com.dua3.lumberjack.ConsoleCode;
+import com.dua3.lumberjack.Location;
 import com.dua3.lumberjack.LogFilter;
 import com.dua3.lumberjack.LogPattern;
 import com.dua3.lumberjack.LogHandler;
@@ -122,7 +123,7 @@ public final class ConsoleHandler implements LogHandler {
     }
 
     @Override
-    public void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable String location, Supplier<String> msg, @Nullable Throwable t) {
+    public void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t) {
         if (filter.test(instant, loggerName, lvl, mrk, mdc, location, msg, t)) {
             ConsoleCode consoleCodes = colorMap.get(lvl);
             logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, location, msg, t, consoleCodes);

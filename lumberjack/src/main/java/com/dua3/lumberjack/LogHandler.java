@@ -55,7 +55,7 @@ public interface LogHandler {
      * @param msg the message of the log entry
      * @param t the throwable associated with the log entry, or {@code null} if none
      */
-    void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable String location, Supplier<String> msg, @Nullable Throwable t);
+    void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t);
 
     /**
      * Sets the filter to be used for determining which log entries should be processed.

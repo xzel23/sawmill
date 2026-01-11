@@ -80,7 +80,7 @@ class LogPatternTest {
             }
         };
         Supplier<String> msg = () -> "Order 4711 processed";
-        String location = null;
+        Location location = null;
         Throwable t = null;
         ConsoleCode consoleCodes = ConsoleCode.empty();
 

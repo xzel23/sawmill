@@ -23,6 +23,9 @@ import java.util.function.Supplier;
  * Utility class that provides helper methods for common programming tasks.
  */
 public final class Util {
+
+    private static final String LINE_SEPARATOR = System.lineSeparator();
+
     private Util() {
         // utility class, no instances
     }
@@ -37,6 +40,52 @@ public final class Util {
      */
     public static Supplier<String> cachingStringSupplier(Supplier<String> supplier) {
         return supplier instanceof CachingStringSupplier cs ? cs : new CachingStringSupplier(supplier);
+    }
+
+    /**
+     * Appends the stack trace of a throwable to a StringBuilder.
+     * @param sb the StringBuilder to append to
+     * @param t the throwable
+     */
+    public static void appendStackTrace(StringBuilder sb, Throwable t) {
+        sb.append(t).append(LINE_SEPARATOR);
+        for (StackTraceElement element : t.getStackTrace()) {
+            sb.append("\tat ").append(element).append(LINE_SEPARATOR);
+        }
+        for (Throwable suppressed : t.getSuppressed()) {
+            appendStackTraceEnclosed(sb, suppressed, t.getStackTrace(), "Suppressed: ", "\t");
+        }
+        Throwable cause = t.getCause();
+        if (cause != null) {
+            appendStackTraceEnclosed(sb, cause, t.getStackTrace(), "Caused by: ", "");
+        }
+    }
+
+    private static void appendStackTraceEnclosed(StringBuilder sb, Throwable t, StackTraceElement[] enclosingTrace, String caption, String indent) {
+        StackTraceElement[] trace = t.getStackTrace();
+        int m = trace.length - 1;
+        int n = enclosingTrace.length - 1;
+        while (m >= 0 && n >= 0 && trace[m].equals(enclosingTrace[n])) {
+            m--;
+            n--;
+        }
+        int framesInCommon = trace.length - 1 - m;
+
+        sb.append(indent).append(caption).append(t).append(LINE_SEPARATOR);
+        for (int i = 0; i <= m; i++) {
+            sb.append(indent).append("\tat ").append(trace[i]).append(LINE_SEPARATOR);
+        }
+        if (framesInCommon != 0) {
+            sb.append(indent).append("\t... ").append(framesInCommon).append(" more").append(LINE_SEPARATOR);
+        }
+
+        for (Throwable suppressed : t.getSuppressed()) {
+            appendStackTraceEnclosed(sb, suppressed, trace, "Suppressed: ", indent + "\t");
+        }
+        Throwable cause = t.getCause();
+        if (cause != null) {
+            appendStackTraceEnclosed(sb, cause, trace, "Caused by: ", indent);
+        }
     }
 
     private static final class CachingStringSupplier implements Supplier<String> {

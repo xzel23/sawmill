@@ -15,6 +15,7 @@
  */
 package com.dua3.sawmill.lumberjack;
 
+import com.dua3.sawmill.lumberjack.support.Util;
 import org.jspecify.annotations.Nullable;
 
 import java.io.PrintStream;
@@ -526,8 +527,7 @@ public final class LogPattern {
         @Override
         public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) {
             if (t != null) {
-                appendFormatted(sb, t.getClass().getName() + ": " + t.getMessage());
-                sb.append(NEWLINE);
+                Util.appendStackTrace(sb, t);
             }
         }
     }

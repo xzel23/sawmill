@@ -1,6 +1,7 @@
 package com.dua3.sawmill.lumberjack;
 
 import org.jspecify.annotations.Nullable;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -125,5 +126,30 @@ class LogPatternTest {
         String actual = baos.toString(StandardCharsets.UTF_8);
 
         assertEquals(updatedExpected, actual);
+    }
+
+    @Test
+    void testPatternWithThrowable() {
+        String pattern = "%msg%n%ex";
+        LogPattern fmt = new LogPattern(pattern);
+
+        Instant instant = Instant.now();
+        String loggerName = "test.Logger";
+        LogLevel level = LogLevel.ERROR;
+        Supplier<String> msg = () -> "An error occurred";
+        Throwable t = new RuntimeException("Test exception");
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (PrintStream out = new PrintStream(baos, true, StandardCharsets.UTF_8)) {
+            fmt.formatLogEntry(out, instant, loggerName, level, null, null, LOC, msg, t, null);
+        }
+
+        String actual = baos.toString(StandardCharsets.UTF_8);
+
+        // Check if message and exception details are present
+        String expectedStart = "An error occurred\njava.lang.RuntimeException: Test exception\n";
+        assertEquals(expectedStart, actual.substring(0, expectedStart.length()));
+        // Check if it contains some stack trace elements
+        org.junit.jupiter.api.Assertions.assertTrue(actual.contains("at com.dua3.sawmill.lumberjack.LogPatternTest.testPatternWithThrowable"));
     }
 }

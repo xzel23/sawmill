@@ -16,6 +16,7 @@
 rootProject.name = "sawmill"
 
 include("lumberjack")
+include("lumberjack:benchmark")
 include("lumberjack:samples:jul")
 include("lumberjack:samples:jcl")
 include("lumberjack:samples:log4j")

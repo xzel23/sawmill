@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class LogPatternTest {
+class LogPatternTest {
 
     @ParameterizedTest(name = "[{index}] pattern=\"{0}\"")
     @CsvSource(
@@ -80,7 +80,7 @@ public class LogPatternTest {
             }
         };
         Supplier<String> msg = () -> "Order 4711 processed";
-        String location = "";
+        String location = null;
         Throwable t = null;
         ConsoleCode consoleCodes = ConsoleCode.empty();
 

@@ -34,17 +34,17 @@ import java.util.function.Supplier;
 public final class LoggerNameFilter implements LogFilter {
 
     private final String name;
-    private final Predicate<? super String> loggerNameFilter;
+    private final Predicate<? super String> predicate;
 
     /**
      * Constructs a new DefaultLogEntryFilter with the specified log level and filter.
      *
      * @param name  the name of the filter
-     * @param loggerNameFilter the filter to set for the logger name
+     * @param predicate the filter to set for the logger name
      */
-    public LoggerNameFilter(String name, Predicate<? super String> loggerNameFilter) {
+    public LoggerNameFilter(String name, Predicate<? super String> predicate) {
         this.name = name;
-        this.loggerNameFilter = loggerNameFilter;
+        this.predicate = predicate;
     }
 
     @Override
@@ -53,12 +53,12 @@ public final class LoggerNameFilter implements LogFilter {
     }
 
     @Override
-    public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, String location, Supplier<String> msg, @Nullable Throwable t) {
-        return loggerNameFilter.test(loggerName);
+    public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable String location, Supplier<String> msg, @Nullable Throwable t) {
+        return predicate.test(loggerName);
     }
 
     @Override
     public boolean isEnabled(String loggerName, LogLevel logLevel, @Nullable String marker) {
-        return loggerNameFilter.test(loggerName);
+        return predicate.test(loggerName);
     }
 }

@@ -1,7 +1,6 @@
 package com.dua3.lumberjack.filter;
 
 import com.dua3.lumberjack.LogLevel;
-import com.dua3.lumberjack.MDC;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -26,7 +25,7 @@ class FiltersTest {
         );
 
         assertEquals(expected, filter.isEnabled(loggerName, LogLevel.INFO, ""));
-        assertEquals(expected, filter.test(Instant.now(), loggerName, LogLevel.INFO, "", null, "location", () -> "msg", null));
+        assertEquals(expected, filter.test(Instant.now(), loggerName, LogLevel.INFO, "", null, null, () -> "msg", null));
     }
 
     @Test
@@ -65,7 +64,7 @@ class FiltersTest {
 
         assertEquals(expected, filter.isMarkerEnabled(logMarker));
         assertEquals(expected, filter.isEnabled("logger", LogLevel.INFO, logMarker));
-        assertEquals(expected, filter.test(Instant.now(), "logger", LogLevel.INFO, logMarker, null, "location", () -> "msg", null));
+        assertEquals(expected, filter.test(Instant.now(), "logger", LogLevel.INFO, logMarker, null, null, () -> "msg", null));
     }
 
     @ParameterizedTest
@@ -77,7 +76,7 @@ class FiltersTest {
         MessageTextFilter filter = new MessageTextFilter("test", msg -> msg.contains(search));
 
         assertTrue(filter.isEnabled("logger", LogLevel.INFO, "")); // Message filter doesn't affect isEnabled usually
-        assertEquals(expected, filter.test(Instant.now(), "logger", LogLevel.INFO, "", null, "location", () -> message, null));
+        assertEquals(expected, filter.test(Instant.now(), "logger", LogLevel.INFO, "", null, null, () -> message, null));
     }
 
     @Test
@@ -90,6 +89,6 @@ class FiltersTest {
         assertFalse(combined.isEnabled("logger", LogLevel.DEBUG, "IMPORTANT"));
         assertFalse(combined.isEnabled("logger", LogLevel.INFO, "TRIVIAL"));
 
-        assertTrue(combined.test(Instant.now(), "logger", LogLevel.INFO, "IMPORTANT", null, "loc", () -> "msg", null));
+        assertTrue(combined.test(Instant.now(), "logger", LogLevel.INFO, "IMPORTANT", null, null, () -> "msg", null));
     }
 }

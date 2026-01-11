@@ -53,7 +53,7 @@ public final class MarkerFilter implements LogFilter {
     }
 
     @Override
-    public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, String location, Supplier<String> msg, @Nullable Throwable t) {
+    public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable String location, Supplier<String> msg, @Nullable Throwable t) {
         return predicate.test(mrk == null ? "" : mrk);
     }
 

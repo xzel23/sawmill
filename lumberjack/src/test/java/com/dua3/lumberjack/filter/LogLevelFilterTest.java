@@ -48,7 +48,7 @@ class LogLevelFilterTest {
         assertEquals(expected, filter.isEnabled("any.logger", level, "any.marker"),
                 () -> "isEnabled failed for threshold " + threshold + " and level " + level);
 
-        assertEquals(expected, filter.test(Instant.now(), "any.logger", level, "any.marker", null, "location", () -> "msg", null),
+        assertEquals(expected, filter.test(Instant.now(), "any.logger", level, "any.marker", null, null, () -> "msg", null),
                 () -> "test failed for threshold " + threshold + " and level " + level);
     }
 }

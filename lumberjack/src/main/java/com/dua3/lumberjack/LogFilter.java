@@ -77,12 +77,12 @@ public interface LogFilter {
      * @param lvl        the log level of the log entry
      * @param mrk        the marker associated with the log entry, can be {@code null}
      * @param mdc        the MDC associated with the log entry, can be {@code null}
-     * @param location   the location where the log entry was generated, typically a code context such as a class or method name
+     * @param location   the location where the log entry was generated, typically a code context such as a class or method name, or {@code null} if none
      * @param msg        the message of the log entry
      * @param t          the throwable associated with the log entry, can be {@code null}
      * @return {@code true}, if the log entry should be processed, {@code false} if it should be filtered out
      */
-    boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, String location, Supplier<String> msg, @Nullable Throwable t);
+    boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable String location, Supplier<String> msg, @Nullable Throwable t);
 
     /**
      * Determines if logging is enabled for a specific name, log level, and optional marker.
@@ -134,7 +134,7 @@ final class LogFilterConstants {
         }
 
         @Override
-        public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, String location, Supplier<String> msg, @Nullable Throwable t) {
+        public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable String location, Supplier<String> msg, @Nullable Throwable t) {
             return true;
         }
 
@@ -156,7 +156,7 @@ final class LogFilterConstants {
         }
 
         @Override
-        public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, String location, Supplier<String> msg, @Nullable Throwable t) {
+        public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable String location, Supplier<String> msg, @Nullable Throwable t) {
             return false;
         }
 

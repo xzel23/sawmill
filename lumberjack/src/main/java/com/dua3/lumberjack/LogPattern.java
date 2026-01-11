@@ -639,7 +639,7 @@ public final class LogPattern {
         }
     }
 
-    private static final Pattern PATTERN = Pattern.compile("%(-?\\d*)(\\.\\d+)?([a-zA-Z]+)(\\{([^}]+)})?|%%|%n");
+    private static final Pattern PATTERN = Pattern.compile("%(-?\\d*)(\\.\\d+)?([a-zA-Z]+)(\\{([^}]+)})?|%%");
 
     /**
      * Parses a Log4J-style pattern string and converts it into a list of {@code LogPatternEntry} instances,

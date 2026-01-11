@@ -164,14 +164,9 @@ public class FileHandler implements LogHandler, AutoCloseable {
     }
 
     private void checkRotation(Instant now) {
-        boolean rotate = false;
-        if (maxFileSize > 0 && currentSize >= maxFileSize) {
-            rotate = true;
-        } else if (maxEntries > 0 && currentEntries >= maxEntries) {
-            rotate = true;
-        } else if (nextRotationTime != null && !now.isBefore(nextRotationTime)) {
-            rotate = true;
-        }
+        boolean rotate = (maxFileSize > 0 && currentSize >= maxFileSize)
+                || (maxEntries > 0 && currentEntries >= maxEntries)
+                || (nextRotationTime != null && !now.isBefore(nextRotationTime));
 
         if (rotate) {
             try {

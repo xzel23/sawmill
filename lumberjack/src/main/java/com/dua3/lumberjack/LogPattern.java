@@ -218,6 +218,24 @@ public final class LogPattern {
         }
     }
 
+    private static String abbreviate(String name, int abbreviationLength) {
+        if (abbreviationLength <= 0) {
+            return name;
+        }
+        String[] parts = name.split("\\.");
+        if (parts.length <= abbreviationLength) {
+            return name;
+        }
+        StringBuilder abbreviated = new StringBuilder();
+        for (int i = parts.length - abbreviationLength; i < parts.length; i++) {
+            if (!abbreviated.isEmpty()) {
+                abbreviated.append('.');
+            }
+            abbreviated.append(parts[i]);
+        }
+        return abbreviated.toString();
+    }
+
     /**
      * A specialized log format entry for formatting and appending logger names to log messages.
      * <p>
@@ -250,21 +268,7 @@ public final class LogPattern {
 
         @Override
         public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) {
-            String nameToAppend = loggerName;
-            if (abbreviationLength > 0) {
-                String[] parts = loggerName.split("\\.");
-                if (parts.length > abbreviationLength) {
-                    StringBuilder abbreviated = new StringBuilder();
-                    for (int i = parts.length - abbreviationLength; i < parts.length; i++) {
-                        if (!abbreviated.isEmpty()) {
-                            abbreviated.append('.');
-                        }
-                        abbreviated.append(parts[i]);
-                    }
-                    nameToAppend = abbreviated.toString();
-                }
-            }
-            appendFormatted(sb, nameToAppend, true);
+            appendFormatted(sb, abbreviate(loggerName, abbreviationLength), true);
         }
 
         @Override
@@ -386,6 +390,63 @@ public final class LogPattern {
         @Override
         public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) {
             appendFormatted(sb, msg.get());
+        }
+    }
+
+    private static class ClassEntry extends AbstractLogPatternEntry {
+        private final int abbreviationLength;
+
+        ClassEntry(int minWidth, int maxWidth, boolean leftAlign, int abbreviationLength) {
+            super("C", minWidth, maxWidth, leftAlign);
+            this.abbreviationLength = abbreviationLength;
+        }
+
+        @Override
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) {
+            String className = location != null ? location.getClassName() : null;
+            appendFormatted(sb, className != null ? abbreviate(className, abbreviationLength) : null, true);
+        }
+
+        @Override
+        public String getLog4jPattern() {
+            String format = super.getLog4jPattern();
+            if (abbreviationLength > 0) {
+                format = format.replace(prefix, prefix + "{" + abbreviationLength + "}");
+            }
+            return format;
+        }
+    }
+
+    private static class MethodEntry extends AbstractLogPatternEntry {
+        MethodEntry(int minWidth, int maxWidth, boolean leftAlign) {
+            super("M", minWidth, maxWidth, leftAlign);
+        }
+
+        @Override
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) {
+            appendFormatted(sb, location != null ? location.getMethodName() : null);
+        }
+    }
+
+    private static class LineEntry extends AbstractLogPatternEntry {
+        LineEntry(int minWidth, int maxWidth, boolean leftAlign) {
+            super("L", minWidth, maxWidth, leftAlign);
+        }
+
+        @Override
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) {
+            appendFormatted(sb, location != null ? String.valueOf(location.getLineNumber()) : null);
+        }
+    }
+
+    private static class FileEntry extends AbstractLogPatternEntry {
+        FileEntry(int minWidth, int maxWidth, boolean leftAlign) {
+            super("F", minWidth, maxWidth, leftAlign);
+        }
+
+        @Override
+        public void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) {
+            appendFormatted(sb, location != null ? location.getFileName() : null);
         }
     }
 
@@ -684,6 +745,16 @@ public final class LogPattern {
                         }
                         entries.add(new LoggerEntry(minWidth, maxWidth, leftAlign, abbreviationLength));
                     }
+                    case "C" -> {
+                        int abbreviationLength = 0;
+                        if (options != null && options.matches("\\d+")) {
+                            abbreviationLength = Integer.parseInt(options);
+                        }
+                        entries.add(new ClassEntry(minWidth, maxWidth, leftAlign, abbreviationLength));
+                    }
+                    case "M" -> entries.add(new MethodEntry(minWidth, maxWidth, leftAlign));
+                    case "L" -> entries.add(new LineEntry(minWidth, maxWidth, leftAlign));
+                    case "F" -> entries.add(new FileEntry(minWidth, maxWidth, leftAlign));
                     case "marker" -> entries.add(new MarkerEntry(minWidth, maxWidth, leftAlign));
                     case "m", "msg", "message" -> entries.add(new MessageEntry(minWidth, maxWidth, leftAlign));
                     case "l", "location" -> entries.add(new LocationEntry(minWidth, maxWidth, leftAlign));

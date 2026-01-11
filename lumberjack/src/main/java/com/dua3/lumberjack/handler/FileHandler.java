@@ -52,10 +52,10 @@ public class FileHandler implements LogHandler, AutoCloseable {
     private long currentEntries;
     private @Nullable Instant nextRotationTime;
 
-    private long maxFileSize = -1;
-    private long maxEntries = -1;
-    private @Nullable ChronoUnit rotationTimeUnit;
-    private int maxBackupIndex = 1;
+    private volatile long maxFileSize = -1;
+    private volatile long maxEntries = -1;
+    private volatile @Nullable ChronoUnit rotationTimeUnit;
+    private volatile int maxBackupIndex = 1;
 
     /**
      * Constructs a new FileHandler.
@@ -126,7 +126,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
      *
      * @param rotationTimeUnit the time unit for rotation, or null for no time-based rotation
      */
-    public void setRotationTimeUnit(@Nullable ChronoUnit rotationTimeUnit) {
+    public synchronized void setRotationTimeUnit(@Nullable ChronoUnit rotationTimeUnit) {
         this.rotationTimeUnit = rotationTimeUnit;
         updateNextRotationTime();
     }
@@ -146,19 +146,21 @@ public class FileHandler implements LogHandler, AutoCloseable {
     }
 
     @Override
-    public synchronized void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t) {
+    public void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t) {
         if (filter.test(instant, loggerName, lvl, mrk, mdc, location, msg, t)) {
-            checkRotation(instant);
-            if (out != null) {
-                logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, location, msg, t, null);
-                out.flush();
-                try {
-                    currentSize = Files.size(path);
-                } catch (IOException e) {
-                    // Fallback if we cannot get size
-                    currentSize += 100; // estimated
+            synchronized (this) {
+                checkRotation(instant);
+                if (out != null) {
+                    logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, location, msg, t, null);
+                    out.flush();
+                    try {
+                        currentSize = Files.size(path);
+                    } catch (IOException e) {
+                        // Fallback if we cannot get size
+                        currentSize += 100; // estimated
+                    }
+                    currentEntries++;
                 }
-                currentEntries++;
             }
         }
     }

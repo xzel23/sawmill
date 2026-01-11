@@ -22,7 +22,6 @@ import com.dua3.lumberjack.LogLevel;
 import com.dua3.lumberjack.LogPattern;
 import com.dua3.lumberjack.MDC;
 import com.dua3.lumberjack.support.CountingOutputStream;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedOutputStream;
@@ -55,12 +54,12 @@ public class FileHandler implements LogHandler, AutoCloseable {
     private long currentEntries;
     private @Nullable Instant nextRotationTime;
 
-    private volatile long maxFileSize = -1;
-    private volatile long maxEntries = -1;
-    private volatile @Nullable ChronoUnit rotationTimeUnit;
-    private volatile int maxBackupIndex = 1;
-    private volatile LogLevel flushLevel = LogLevel.INFO;
-    private volatile int flushEveryNEntries = 1;
+    private long maxFileSize = -1;
+    private long maxEntries = -1;
+    private @Nullable ChronoUnit rotationTimeUnit;
+    private int maxBackupIndex = 1;
+    private LogLevel flushLevel = LogLevel.INFO;
+    private int flushEveryNEntries = 1;
     private int entriesSinceLastFlush = 0;
 
     /**
@@ -129,7 +128,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
      *
      * @param maxFileSize the maximum file size in bytes, or -1 for no limit
      */
-    public void setMaxFileSize(long maxFileSize) {
+    public synchronized void setMaxFileSize(long maxFileSize) {
         this.maxFileSize = maxFileSize;
     }
 
@@ -138,7 +137,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
      *
      * @param maxEntries the maximum number of entries, or -1 for no limit
      */
-    public void setMaxEntries(long maxEntries) {
+    public synchronized void setMaxEntries(long maxEntries) {
         this.maxEntries = maxEntries;
     }
 
@@ -157,7 +156,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
      *
      * @param maxBackupIndex the maximum number of backup files
      */
-    public void setMaxBackupIndex(int maxBackupIndex) {
+    public synchronized void setMaxBackupIndex(int maxBackupIndex) {
         this.maxBackupIndex = maxBackupIndex;
     }
 
@@ -166,7 +165,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
      *
      * @param flushLevel the minimum log level to trigger a flush
      */
-    public void setFlushLevel(LogLevel flushLevel) {
+    public synchronized void setFlushLevel(LogLevel flushLevel) {
         this.flushLevel = Objects.requireNonNull(flushLevel);
     }
 
@@ -175,7 +174,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
      *
      * @param flushEveryNEntries the number of entries, or -1 to disable entry-based flushing
      */
-    public void setFlushEveryNEntries(int flushEveryNEntries) {
+    public synchronized void setFlushEveryNEntries(int flushEveryNEntries) {
         this.flushEveryNEntries = flushEveryNEntries;
     }
 
@@ -255,7 +254,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
     }
 
     @Override
-    public void setFilter(LogFilter filter) {
+    public synchronized void setFilter(LogFilter filter) {
         this.filter = Objects.requireNonNull(filter);
     }
 
@@ -277,7 +276,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
      * Sets the log pattern.
      * @param pattern the log pattern string
      */
-    public void setPattern(String pattern) {
+    public synchronized void setPattern(String pattern) {
         logPattern.setPattern(pattern);
     }
 

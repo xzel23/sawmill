@@ -25,7 +25,7 @@ class FiltersTest {
         );
 
         assertEquals(expected, filter.isEnabled(loggerName, LogLevel.INFO, ""));
-        assertEquals(expected, filter.test(Instant.now(), loggerName, LogLevel.INFO, "", null, null, () -> "msg", null));
+        assertEquals(expected, filter.test(Instant.now(), loggerName, LogLevel.INFO, "", null, () -> "msg", null));
     }
 
     @Test
@@ -64,7 +64,7 @@ class FiltersTest {
 
         assertEquals(expected, filter.isMarkerEnabled(logMarker));
         assertEquals(expected, filter.isEnabled("logger", LogLevel.INFO, logMarker));
-        assertEquals(expected, filter.test(Instant.now(), "logger", LogLevel.INFO, logMarker, null, null, () -> "msg", null));
+        assertEquals(expected, filter.test(Instant.now(), "logger", LogLevel.INFO, logMarker, null, () -> "msg", null));
     }
 
     @ParameterizedTest
@@ -76,7 +76,7 @@ class FiltersTest {
         MessageTextFilter filter = new MessageTextFilter("test", msg -> msg.contains(search));
 
         assertTrue(filter.isEnabled("logger", LogLevel.INFO, "")); // Message filter doesn't affect isEnabled usually
-        assertEquals(expected, filter.test(Instant.now(), "logger", LogLevel.INFO, "", null, null, () -> message, null));
+        assertEquals(expected, filter.test(Instant.now(), "logger", LogLevel.INFO, "", null, () -> message, null));
     }
 
     @Test
@@ -89,6 +89,6 @@ class FiltersTest {
         assertFalse(combined.isEnabled("logger", LogLevel.DEBUG, "IMPORTANT"));
         assertFalse(combined.isEnabled("logger", LogLevel.INFO, "TRIVIAL"));
 
-        assertTrue(combined.test(Instant.now(), "logger", LogLevel.INFO, "IMPORTANT", null, null, () -> "msg", null));
+        assertTrue(combined.test(Instant.now(), "logger", LogLevel.INFO, "IMPORTANT", null, () -> "msg", null));
     }
 }

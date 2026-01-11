@@ -15,7 +15,6 @@
  */
 package com.dua3.lumberjack.filter;
 
-import com.dua3.lumberjack.Location;
 import com.dua3.lumberjack.LogFilter;
 import com.dua3.lumberjack.LogLevel;
 import com.dua3.lumberjack.MDC;
@@ -54,7 +53,7 @@ public final class MessageTextFilter implements LogFilter {
     }
 
     @Override
-    public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t) {
+    public boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, Supplier<String> msg, @Nullable Throwable t) {
         return textFilter.test(msg.get());
     }
 

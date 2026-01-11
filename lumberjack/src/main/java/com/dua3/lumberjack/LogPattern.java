@@ -47,6 +47,10 @@ public final class LogPattern {
         void format(StringBuilder sb, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes);
 
         String getLog4jPattern();
+
+        default boolean isLocationNeeded() {
+            return false;
+        }
     }
 
     /**
@@ -61,6 +65,7 @@ public final class LogPattern {
         protected final int minWidth;
         protected final int maxWidth;
         protected final boolean leftAlign;
+        private final boolean needsLocation;
 
         /**
          * Constructs an instance of the AbstractLogPatternEntry with the specified
@@ -78,16 +83,23 @@ public final class LogPattern {
          *                  left-aligned. If true, padding will be added to the right
          *                  of the formatted output; otherwise, padding will be added
          *                  to the left.
+         * @param needsLocation A flag indicating whether this entry requires location information.
          */
-        protected AbstractLogPatternEntry(String prefix, int minWidth, int maxWidth, boolean leftAlign) {
+        protected AbstractLogPatternEntry(String prefix, int minWidth, int maxWidth, boolean leftAlign, boolean needsLocation) {
             this.prefix = prefix;
             this.minWidth = minWidth;
             this.maxWidth = maxWidth;
             this.leftAlign = leftAlign;
+            this.needsLocation = needsLocation;
         }
 
         private static final int N_SPACES = 20;
         private static final String SPACES = " ".repeat(N_SPACES);
+
+        @Override
+        public boolean isLocationNeeded() {
+            return needsLocation;
+        }
 
         /**
          * Appends a specified number of spaces to the given StringBuilder.
@@ -209,7 +221,7 @@ public final class LogPattern {
      */
     private static class LevelEntry extends AbstractLogPatternEntry {
         LevelEntry(int minWidth, int maxWidth, boolean leftAlign) {
-            super("p", minWidth, maxWidth, leftAlign);
+            super("p", minWidth, maxWidth, leftAlign, false);
         }
 
         @Override
@@ -262,7 +274,7 @@ public final class LogPattern {
          * @param abbreviationLength the number of rightmost components of the logger name to keep.
          */
         LoggerEntry(int minWidth, int maxWidth, boolean leftAlign, int abbreviationLength) {
-            super("c", minWidth, maxWidth, leftAlign);
+            super("c", minWidth, maxWidth, leftAlign, false);
             this.abbreviationLength = abbreviationLength;
         }
 
@@ -286,7 +298,7 @@ public final class LogPattern {
      */
     private static class ThreadEntry extends AbstractLogPatternEntry {
         ThreadEntry(int minWidth, int maxWidth, boolean leftAlign) {
-            super("t", minWidth, maxWidth, leftAlign);
+            super("t", minWidth, maxWidth, leftAlign, false);
         }
 
         @Override
@@ -302,7 +314,7 @@ public final class LogPattern {
         private final @Nullable String key;
 
         MdcEntry(int minWidth, int maxWidth, boolean leftAlign, @Nullable String key) {
-            super("X", minWidth, maxWidth, leftAlign);
+            super("X", minWidth, maxWidth, leftAlign, false);
             this.key = key;
         }
 
@@ -356,7 +368,7 @@ public final class LogPattern {
          *                  otherwise, padding will be added to the left.
          */
         MarkerEntry(int minWidth, int maxWidth, boolean leftAlign) {
-            super("marker", minWidth, maxWidth, leftAlign);
+            super("marker", minWidth, maxWidth, leftAlign, false);
         }
 
         @Override
@@ -384,7 +396,7 @@ public final class LogPattern {
          *                  added to the left.
          */
         MessageEntry(int minWidth, int maxWidth, boolean leftAlign) {
-            super("m", minWidth, maxWidth, leftAlign);
+            super("m", minWidth, maxWidth, leftAlign, false);
         }
 
         @Override
@@ -397,7 +409,7 @@ public final class LogPattern {
         private final int abbreviationLength;
 
         ClassEntry(int minWidth, int maxWidth, boolean leftAlign, int abbreviationLength) {
-            super("C", minWidth, maxWidth, leftAlign);
+            super("C", minWidth, maxWidth, leftAlign, true);
             this.abbreviationLength = abbreviationLength;
         }
 
@@ -419,7 +431,7 @@ public final class LogPattern {
 
     private static class MethodEntry extends AbstractLogPatternEntry {
         MethodEntry(int minWidth, int maxWidth, boolean leftAlign) {
-            super("M", minWidth, maxWidth, leftAlign);
+            super("M", minWidth, maxWidth, leftAlign, true);
         }
 
         @Override
@@ -430,7 +442,7 @@ public final class LogPattern {
 
     private static class LineEntry extends AbstractLogPatternEntry {
         LineEntry(int minWidth, int maxWidth, boolean leftAlign) {
-            super("L", minWidth, maxWidth, leftAlign);
+            super("L", minWidth, maxWidth, leftAlign, true);
         }
 
         @Override
@@ -441,7 +453,7 @@ public final class LogPattern {
 
     private static class FileEntry extends AbstractLogPatternEntry {
         FileEntry(int minWidth, int maxWidth, boolean leftAlign) {
-            super("F", minWidth, maxWidth, leftAlign);
+            super("F", minWidth, maxWidth, leftAlign, true);
         }
 
         @Override
@@ -472,7 +484,7 @@ public final class LogPattern {
          *                  formatted output; otherwise, padding will be added to the left.
          */
         LocationEntry(int minWidth, int maxWidth, boolean leftAlign) {
-            super("l", minWidth, maxWidth, leftAlign);
+            super("l", minWidth, maxWidth, leftAlign, true);
         }
 
         @Override
@@ -508,7 +520,7 @@ public final class LogPattern {
          *                  to the left.
          */
         ExceptionEntry(int minWidth, int maxWidth, boolean leftAlign) {
-            super("ex", minWidth, maxWidth, leftAlign);
+            super("ex", minWidth, maxWidth, leftAlign, false);
         }
 
         @Override
@@ -542,7 +554,7 @@ public final class LogPattern {
          *                  to the left.
          */
         ColorStartEntry(int minWidth, int maxWidth, boolean leftAlign) {
-            super("Cstart", minWidth, maxWidth, leftAlign);
+            super("Cstart", minWidth, maxWidth, leftAlign, false);
         }
 
         @Override
@@ -572,7 +584,7 @@ public final class LogPattern {
          *                  to the left.
          */
         ColorEndEntry(int minWidth, int maxWidth, boolean leftAlign) {
-            super("Cend", minWidth, maxWidth, leftAlign);
+            super("Cend", minWidth, maxWidth, leftAlign, false);
         }
 
         @Override
@@ -587,7 +599,7 @@ public final class LogPattern {
      * to format a log entry's timestamp according to various date-time patterns.
      */
     private static class DateEntry implements LogPatternEntry {
-        private final String pattern;
+        private final String datePattern;
         private final DateTimeFormatter formatter;
 
         /**
@@ -599,7 +611,7 @@ public final class LogPattern {
          *                If the pattern is empty, "HH:mm:ss" will be used as the default.
          */
         DateEntry(String pattern) {
-            this.pattern = pattern;
+            this.datePattern = pattern;
             this.formatter = switch (pattern) {
                 case "ISO8601" -> DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssSSSZ");
                 case "HH:mm:ss,SSS" -> DateTimeFormatter.ofPattern("HH:mm:ss,SSS");
@@ -616,7 +628,7 @@ public final class LogPattern {
 
         @Override
         public String getLog4jPattern() {
-            return pattern.isEmpty() ? "%d" : "%d{" + pattern + "}";
+            return datePattern.isEmpty() ? "%d" : "%d{" + datePattern + "}";
         }
     }
 
@@ -674,6 +686,20 @@ public final class LogPattern {
     }
 
     /**
+     * Checks if this pattern requires location information.
+     *
+     * @return {@code true} if this pattern requires location information, otherwise {@code false}
+     */
+    public boolean isLocationNeeded() {
+        for (LogPatternEntry entry : entries) {
+            if (entry.isLocationNeeded()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Formats a log entry.
      *
      * @param out          the {@link PrintStream} to write the formatted log entry to
@@ -681,13 +707,14 @@ public final class LogPattern {
      * @param loggerName   the name of the logger
      * @param lvl          the log level
      * @param mrk          the marker
-     * @param msg          the message supplier
      * @param mdc          the MDC context
-     * @param location     the location information, or {@code null} if none
+     * @param loc          the location resolver
+     * @param msg          the message supplier
      * @param t            the throwable, if any
      * @param consoleCodes the color codes for the log level (start and end)
      */
-    public void formatLogEntry(PrintStream out, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) {
+    public void formatLogEntry(PrintStream out, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, LocationResolver loc, Supplier<String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) {
+        Location location = isLocationNeeded() ? loc.resolve() : null;
         StringBuilder sb = SB_THREAD_LOCAL.get();
         sb.setLength(0);
         for (LogPatternEntry entry : entries) {

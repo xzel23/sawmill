@@ -16,13 +16,13 @@
 package com.dua3.lumberjack.handler;
 
 import com.dua3.lumberjack.ConsoleCode;
-import com.dua3.lumberjack.Location;
 import com.dua3.lumberjack.LogFilter;
 import com.dua3.lumberjack.LogPattern;
 import com.dua3.lumberjack.LogHandler;
 import com.dua3.lumberjack.LogLevel;
 import com.dua3.lumberjack.MDC;
 import com.dua3.lumberjack.support.AnsiCode;
+import com.dua3.lumberjack.LocationResolver;
 import org.jspecify.annotations.Nullable;
 
 import java.io.PrintStream;
@@ -97,18 +97,6 @@ public final class ConsoleHandler implements LogHandler {
         setColored(colored);
     }
 
-    /**
-     * Constructs a ConsoleHandler with the specified PrintStream and colored flag.
-     *
-     * @param out     the PrintStream to which log messages will be written
-     * @param colored flag indicating whether to use colored brackets for different log levels
-     * @deprecated use {@link #ConsoleHandler(String, PrintStream, boolean)} instead
-     */
-    @Deprecated(forRemoval = true)
-    public ConsoleHandler(PrintStream out, boolean colored) {
-        this(ConsoleHandler.class.getSimpleName(), out, colored);
-    }
-
     @Override
     public String name() {
         return name;
@@ -123,10 +111,10 @@ public final class ConsoleHandler implements LogHandler {
     }
 
     @Override
-    public void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t) {
-        if (filter.test(instant, loggerName, lvl, mrk, mdc, location, msg, t)) {
+    public void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, LocationResolver loc, Supplier<String> msg, @Nullable Throwable t) {
+        if (filter.test(instant, loggerName, lvl, mrk, mdc, msg, t)) {
             ConsoleCode consoleCodes = colorMap.get(lvl);
-            logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, location, msg, t, consoleCodes);
+            logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, loc, msg, t, consoleCodes);
         }
     }
 

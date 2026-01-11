@@ -1,6 +1,9 @@
 package com.dua3.lumberjack.handler;
 
+import com.dua3.lumberjack.Location;
 import com.dua3.lumberjack.LogLevel;
+import com.dua3.lumberjack.LocationResolver;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -15,6 +18,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FileHandlerTest {
 
+    private static final LocationResolver LOC = new LocationResolver() {
+        @Override
+        public @Nullable Location resolve() {
+            return null;
+        }
+    };
+
     @TempDir
     Path tempDir;
 
@@ -23,8 +33,8 @@ class FileHandlerTest {
         Path logFile = tempDir.resolve("test.log");
         try (FileHandler handler = new FileHandler("test", logFile, false)) {
             handler.setPattern("%msg%n");
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "Hello, World!", null);
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "Second line", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Hello, World!", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Second line", null);
         }
 
         assertTrue(Files.exists(logFile));
@@ -41,7 +51,7 @@ class FileHandlerTest {
 
         try (FileHandler handler = new FileHandler("test", logFile, true)) {
             handler.setPattern("%msg%n");
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "Second line", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Second line", null);
         }
 
         List<String> lines = Files.readAllLines(logFile);
@@ -57,7 +67,7 @@ class FileHandlerTest {
 
         try (FileHandler handler = new FileHandler("test", logFile, false)) {
             handler.setPattern("%msg%n");
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "New content", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "New content", null);
         }
 
         List<String> lines = Files.readAllLines(logFile);
@@ -74,13 +84,13 @@ class FileHandlerTest {
             handler.setMaxBackupIndex(2);
 
             // Each log entry is "Line X\n" which is about 7 bytes.
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "Line 1", null); // ~7 bytes
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "Line 2", null); // ~14 bytes -> rotation should occur BEFORE or AFTER?
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Line 1", null); // ~7 bytes
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Line 2", null); // ~14 bytes -> rotation should occur BEFORE or AFTER?
             // In my implementation, checkRotation is called BEFORE writing.
             // 1st entry: size 0, max 10 -> no rotate. Write "Line 1\n". currentSize = 7.
             // 2nd entry: size 7, max 10 -> no rotate. Write "Line 2\n". currentSize = 14.
             // 3rd entry: size 14, max 10 -> ROTATE. Write "Line 3\n" to NEW file.
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "Line 3", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Line 3", null);
         }
 
         assertTrue(Files.exists(logFile));
@@ -104,10 +114,10 @@ class FileHandlerTest {
             handler.setMaxEntries(2);
             handler.setMaxBackupIndex(2);
 
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "Line 1", null);
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "Line 2", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Line 1", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Line 2", null);
             // 3rd entry triggers rotation because currentEntries (2) >= maxEntries (2)
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "Line 3", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Line 3", null);
         }
 
         assertTrue(Files.exists(logFile));
@@ -126,12 +136,12 @@ class FileHandlerTest {
             // Use a very small time unit if possible, but ChronoUnit.SECONDS is the smallest truncatedTo supports usually
             handler.setRotationTimeUnit(ChronoUnit.SECONDS);
 
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "Line 1", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Line 1", null);
 
             // Wait for next second
             Thread.sleep(1100);
 
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "Line 2", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Line 2", null);
         }
 
         assertTrue(Files.exists(logFile));
@@ -148,16 +158,16 @@ class FileHandlerTest {
             handler.setFlushEveryNEntries(1); // Ensure flush happens for this test
             
             // Write 5 bytes
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "12345", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "12345", null);
             // currentSize should be 5 now, even if not flushed to disk yet.
             
             // Write 6 more bytes -> total 11, should trigger rotation on NEXT handle call if we check BEFORE write.
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "678901", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "678901", null);
             // 1st entry: size 0, max 10 -> no rotate. Write "12345". currentSize = 5.
             // 2nd entry: size 5, max 10 -> no rotate. Write "678901". currentSize = 11.
             
             // 3rd entry: size 11, max 10 -> ROTATE.
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "ROTATE", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "ROTATE", null);
         }
 
         assertTrue(Files.exists(logFile));
@@ -177,12 +187,12 @@ class FileHandlerTest {
             handler.setFlushLevel(LogLevel.ERROR);
             handler.setFlushEveryNEntries(-1); // Disable entry-based flush
 
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "info", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "info", null);
             // Should be in buffer, not necessarily on disk. 
             // Files.size() might still show 0 or old size if OS/JVM hasn't flushed.
             // But wait, our check for flush is logical. 
             
-            handler.handle(Instant.now(), "test", LogLevel.ERROR, null, null, null, () -> "error", null);
+            handler.handle(Instant.now(), "test", LogLevel.ERROR, null, null, LOC, () -> "error", null);
             // This should trigger flush.
         }
         assertEquals("infoerror", Files.readString(logFile));
@@ -194,11 +204,11 @@ class FileHandlerTest {
             handler.setFlushLevel(LogLevel.ERROR); // Only flush ERROR or higher
             handler.setFlushEveryNEntries(3);
 
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "1", null);
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "2", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "1", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "2", null);
             // No flush yet
             
-            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, null, () -> "3", null);
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "3", null);
             // This should trigger flush (3rd entry)
         }
         assertEquals("123", Files.readString(logFile));

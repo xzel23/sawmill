@@ -15,14 +15,15 @@
  */
 package com.dua3.lumberjack.dispatcher;
 
-import com.dua3.lumberjack.Location;
 import com.dua3.lumberjack.LogDispatcher;
 import com.dua3.lumberjack.LogFilter;
 import com.dua3.lumberjack.LogHandler;
 import com.dua3.lumberjack.LogLevel;
+import com.dua3.lumberjack.Lumberjack;
 import com.dua3.lumberjack.MDC;
 import com.dua3.lumberjack.frontend.log4j.LoggerLog4j;
 import com.dua3.lumberjack.frontend.slf4j.LoggerSlf4j;
+import com.dua3.lumberjack.support.StackWalkerLocationResolver;
 import com.dua3.lumberjack.support.Util;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Marker;
@@ -136,10 +137,11 @@ public final class UniversalDispatcher implements LogDispatcher {
      * @param name the fully qualified class name of the logger emitting the event; must not be null
      * @param level the Log4j {@code Level} of the log event; must not be null
      * @param marker an optional {@code Marker} associated with the log event; may be null
+     * @param mdc the MDC associated with the log event; may be null
      * @param message the log message to be formatted and dispatched; must not be null
      * @param t an optional {@code Throwable} associated with the log event; may be null
      */
-    public void dispatchLog4j(String name, Level level, @Nullable Marker marker, MDC mdc, Message message, @Nullable Throwable t) {
+    public void dispatchLog4j(String name, Level level, @Nullable Marker marker, @Nullable MDC mdc, Message message, @Nullable Throwable t) {
         LogLevel lvl = LoggerLog4j.translateLog4jLevel(level);
 
         if (!filter.isLevelEnabled(lvl)) {
@@ -159,15 +161,17 @@ public final class UniversalDispatcher implements LogDispatcher {
             msg = Util.cachingStringSupplier(message::getFormattedMessage);
         }
 
-        if (filter.test(instant, name, lvl, mrk, mdc, null, msg, t)) {
+        if (filter.test(instant, name, lvl, mrk, mdc, msg, t)) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(lvl)) {
-                    handler.handle(instant, name, lvl, mrk, mdc, null, msg, t);
+                    handler.handle(instant, name, lvl, mrk, mdc, LOCATION_RESOLVER_LOG4J, msg, t);
                 }
             }
         }
     }
+
+    private static final StackWalkerLocationResolver LOCATION_RESOLVER_LOG4J = new StackWalkerLocationResolver(Lumberjack.class.getPackageName(), "org.apache.logging");
 
     /**
      * Dispatches an SLF4J logging event to all registered {@link LogHandler} instances.
@@ -179,9 +183,9 @@ public final class UniversalDispatcher implements LogDispatcher {
      * @param marker an optional {@link org.slf4j.Marker} associated with the log event; may be null
      * @param messagePattern the SLF4J-style message pattern to be formatted; must not be null
      * @param arguments an optional array of arguments for the message pattern; may be null or empty
-     * @param throwable an optional {@link Throwable} associated with the log event; may be null
+     * @param t an optional {@link Throwable} associated with the log event; may be null
      */
-    public void dispatchSlf4j(String loggerName, org.slf4j.event.Level level, String marker, MDC mdc, String messagePattern, @Nullable Object @Nullable [] arguments, @Nullable Throwable throwable) {
+    public void dispatchSlf4j(String loggerName, org.slf4j.event.Level level, String marker, MDC mdc, String messagePattern, @Nullable Object @Nullable [] arguments, @Nullable Throwable t) {
         LogLevel lvl = LoggerSlf4j.translateSlf4jLevel(level);
 
         if (!filter.isLevelEnabled(lvl)) {
@@ -192,15 +196,17 @@ public final class UniversalDispatcher implements LogDispatcher {
         Instant instant = Instant.now();
         Supplier<String> msg = Util.cachingStringSupplier(() -> formatSlf4jMessage(messagePattern, arguments));
 
-        if (filter.test(instant, loggerName, lvl, marker, mdc, null, msg, throwable)) {
+        if (filter.test(instant, loggerName, lvl, marker, mdc, msg, t)) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(lvl)) {
-                    handler.handle(instant, loggerName, lvl, marker, mdc, null, msg, throwable);
+                    handler.handle(instant, loggerName, lvl, marker, mdc, LOCATION_RESOLVER_SLF4J, msg, t);
                 }
             }
         }
     }
+
+    private static final StackWalkerLocationResolver LOCATION_RESOLVER_SLF4J = new StackWalkerLocationResolver(Lumberjack.class.getPackageName(), "org.slf4j");
 
     /**
      * Formats an SLF4J-style message pattern using the provided arguments.
@@ -240,17 +246,18 @@ public final class UniversalDispatcher implements LogDispatcher {
         String loggerName = logRecord.getLoggerName();
         String marker = null;
         Supplier<String> msg = Util.cachingStringSupplier(() -> formatJulMessage(logRecord.getMessage(), logRecord.getParameters()));
-        Location location = logRecord.getSourceClassName() == null ? null : new LocationJUL(logRecord);
 
-        if (filter.test(instant, loggerName, lvl, marker, null, location, msg, logRecord.getThrown())) {
+        if (filter.test(instant, loggerName, lvl, marker, null, msg, logRecord.getThrown())) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(lvl)) {
-                    handler.handle(instant, loggerName, lvl, marker, null, location, msg, logRecord.getThrown());
+                    handler.handle(instant, loggerName, lvl, marker, null, LOCATION_RESOLVER_JUL, msg, logRecord.getThrown());
                 }
             }
         }
     }
+
+    private static final StackWalkerLocationResolver LOCATION_RESOLVER_JUL = new StackWalkerLocationResolver(Lumberjack.class.getPackageName(), "java.util.logging");
 
     /**
      * Formats a message pattern using the provided parameters. If the parameters are null
@@ -311,44 +318,16 @@ public final class UniversalDispatcher implements LogDispatcher {
         Instant instant = Instant.now();
         Supplier<String> msg = Util.cachingStringSupplier(() -> String.valueOf(message));
 
-        if (filter.test(instant, name, level, "", null, null, msg, t)) {
+        if (filter.test(instant, name, level, "", null, msg, t)) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(level)) {
-                    handler.handle(instant, name, level, "", null, null, msg, t);
+                    handler.handle(instant, name, level, null, null, LOCATION_RESOLVER_JCL, msg, t);
                 }
             }
         }
     }
 
-    /**
-     * LocationJUL is a private static class that implements the Location interface
-     * to provide contextual information about a log record generated by the
-     * java.util.logging (JUL) framework.
-     */
-    private static class LocationJUL implements Location {
-        private final LogRecord logRecord;
+    private static final StackWalkerLocationResolver LOCATION_RESOLVER_JCL = new StackWalkerLocationResolver(Lumberjack.class.getPackageName(), "org.apache.commons.logging");
 
-        LocationJUL(LogRecord logRecord) {this.logRecord = logRecord;}
-
-        @Override
-        public @Nullable String getClassName() {
-            return logRecord.getSourceClassName();
-        }
-
-        @Override
-        public @Nullable String getMethodName() {
-            return logRecord.getSourceMethodName();
-        }
-
-        @Override
-        public int getLineNumber() {
-            return -1;
-        }
-
-        @Override
-        public @Nullable String getFileName() {
-            return null;
-        }
-    }
 }

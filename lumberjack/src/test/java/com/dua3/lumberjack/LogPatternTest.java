@@ -18,6 +18,33 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class LogPatternTest {
 
+    private static final LocationResolver LOC = new LocationResolver() {
+        @Override
+        public @Nullable Location resolve() {
+            return new Location() {
+                @Override
+                public String getClassName() {
+                    return "com.example.service.OrderService";
+                }
+
+                @Override
+                public @Nullable String getMethodName() {
+                    return "processOrder";
+                }
+
+                @Override
+                public int getLineNumber() {
+                    return 42;
+                }
+
+                @Override
+                public @Nullable String getFileName() {
+                    return "OrderService.java";
+                }
+            };
+        }
+    };
+
     @ParameterizedTest(name = "[{index}] pattern=\"{0}\"")
     @CsvSource(
             delimiter = '|',
@@ -87,33 +114,12 @@ class LogPatternTest {
             }
         };
         Supplier<String> msg = () -> "Order 4711 processed";
-        Location location = new Location() {
-            @Override
-            public String getClassName() {
-                return "com.example.service.OrderService";
-            }
-
-            @Override
-            public String getMethodName() {
-                return "processOrder";
-            }
-
-            @Override
-            public int getLineNumber() {
-                return 42;
-            }
-
-            @Override
-            public String getFileName() {
-                return "OrderService.java";
-            }
-        };
         Throwable t = null;
         ConsoleCode consoleCodes = ConsoleCode.empty();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (PrintStream out = new PrintStream(baos, true, StandardCharsets.UTF_8)) {
-            fmt.formatLogEntry(out, instant, loggerName, level, marker, mdc, location, msg, t, consoleCodes);
+            fmt.formatLogEntry(out, instant, loggerName, level, marker, mdc, LOC, msg, t, consoleCodes);
         }
 
         String actual = baos.toString(StandardCharsets.UTF_8);

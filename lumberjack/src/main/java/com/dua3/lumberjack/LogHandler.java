@@ -46,16 +46,16 @@ public interface LogHandler {
     /**
      * Handles a log entry.
      *
-     * @param instant the timestamp of the log entry
+     * @param instant    the timestamp of the log entry
      * @param loggerName the name of the logger
-     * @param lvl the log level of the log entry
-     * @param mrk the marker associated with the log entry, or {@code null} if none
-     * @param mdc the MDC associated with the log entry
-     * @param location the location in the code where the log entry was created, or {@code null} if none
-     * @param msg the message of the log entry
-     * @param t the throwable associated with the log entry, or {@code null} if none
+     * @param lvl        the log level of the log entry
+     * @param mrk        the marker associated with the log entry, or {@code null} if none
+     * @param mdc        the MDC associated with the log entry
+     * @param location
+     * @param msg        the message of the log entry
+     * @param t          the throwable associated with the log entry, or {@code null} if none
      */
-    void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t);
+    void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, LocationResolver location, Supplier<String> msg, @Nullable Throwable t);
 
     /**
      * Sets the filter to be used for determining which log entries should be processed.

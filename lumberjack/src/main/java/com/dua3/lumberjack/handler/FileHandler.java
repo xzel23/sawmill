@@ -15,13 +15,13 @@
  */
 package com.dua3.lumberjack.handler;
 
-import com.dua3.lumberjack.Location;
 import com.dua3.lumberjack.LogFilter;
 import com.dua3.lumberjack.LogHandler;
 import com.dua3.lumberjack.LogLevel;
 import com.dua3.lumberjack.LogPattern;
 import com.dua3.lumberjack.MDC;
 import com.dua3.lumberjack.support.CountingOutputStream;
+import com.dua3.lumberjack.LocationResolver;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedOutputStream;
@@ -184,12 +184,12 @@ public class FileHandler implements LogHandler, AutoCloseable {
     }
 
     @Override
-    public void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<String> msg, @Nullable Throwable t) {
-        if (filter.test(instant, loggerName, lvl, mrk, mdc, location, msg, t)) {
+    public void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, LocationResolver loc, Supplier<String> msg, @Nullable Throwable t) {
+        if (filter.test(instant, loggerName, lvl, mrk, mdc, msg, t)) {
             synchronized (this) {
                 checkRotation(instant);
                 if (out != null) {
-                    logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, location, msg, t, null);
+                    logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, loc, msg, t, null);
                     currentEntries++;
                     entriesSinceLastFlush++;
                     if (shouldFlush(lvl)) {

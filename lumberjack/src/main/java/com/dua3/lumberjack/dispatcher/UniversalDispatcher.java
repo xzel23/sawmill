@@ -140,6 +140,13 @@ public final class UniversalDispatcher implements LogDispatcher {
      * @param t an optional {@code Throwable} associated with the log event; may be null
      */
     public void dispatchLog4j(String name, Level level, @Nullable Marker marker, MDC mdc, Message message, @Nullable Throwable t) {
+        LogLevel lvl = LoggerLog4j.translateLog4jLevel(level);
+
+        if (!filter.isLevelEnabled(lvl)) {
+            // fastpath
+            return;
+        }
+
         Instant instant = Instant.now();
         String mrk = marker == null ? "" : marker.getName();
 
@@ -151,8 +158,6 @@ public final class UniversalDispatcher implements LogDispatcher {
         } else {
             msg = Util.cachingStringSupplier(message::getFormattedMessage);
         }
-
-        LogLevel lvl = LoggerLog4j.translateLog4jLevel(level);
 
         if (filter.test(instant, name, lvl, mrk, mdc, null, msg, t)) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
@@ -177,10 +182,16 @@ public final class UniversalDispatcher implements LogDispatcher {
      * @param throwable an optional {@link Throwable} associated with the log event; may be null
      */
     public void dispatchSlf4j(String loggerName, org.slf4j.event.Level level, String marker, MDC mdc, String messagePattern, @Nullable Object @Nullable [] arguments, @Nullable Throwable throwable) {
+        LogLevel lvl = LoggerSlf4j.translateSlf4jLevel(level);
+
+        if (!filter.isLevelEnabled(lvl)) {
+            // fastpath
+            return;
+        }
+
         Instant instant = Instant.now();
         Supplier<String> msg = Util.cachingStringSupplier(() -> formatSlf4jMessage(messagePattern, arguments));
 
-        LogLevel lvl = LoggerSlf4j.translateSlf4jLevel(level);
         if (filter.test(instant, loggerName, lvl, marker, mdc, null, msg, throwable)) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
@@ -218,16 +229,24 @@ public final class UniversalDispatcher implements LogDispatcher {
      * @param logRecord the {@code LogRecord} containing the log information; must not be null
      */
     public void dispatchJul(LogRecord logRecord) {
-        Instant instant = Instant.now();
-        Supplier<String> msg = Util.cachingStringSupplier(() -> formatJulMessage(logRecord.getMessage(), logRecord.getParameters()));
         LogLevel lvl = translateJulLevel(logRecord.getLevel());
+
+        if (!filter.isLevelEnabled(lvl)) {
+            // fastpath
+            return;
+        }
+
+        Instant instant = Instant.now();
+        String loggerName = logRecord.getLoggerName();
+        String marker = null;
+        Supplier<String> msg = Util.cachingStringSupplier(() -> formatJulMessage(logRecord.getMessage(), logRecord.getParameters()));
         Location location = logRecord.getSourceClassName() == null ? null : new LocationJUL(logRecord);
 
-        if (filter.test(instant, logRecord.getLoggerName(), lvl, null, null, location, msg, logRecord.getThrown())) {
+        if (filter.test(instant, loggerName, lvl, marker, null, location, msg, logRecord.getThrown())) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(lvl)) {
-                    handler.handle(instant, logRecord.getLoggerName(), lvl, "", null, location, msg, logRecord.getThrown());
+                    handler.handle(instant, loggerName, lvl, marker, null, location, msg, logRecord.getThrown());
                 }
             }
         }
@@ -284,6 +303,11 @@ public final class UniversalDispatcher implements LogDispatcher {
      * @param t an optional {@link Throwable} associated with the log event; can be null
      */
     public void dispatchJcl(String name, LogLevel level, @Nullable Object message, @Nullable Throwable t) {
+        if (!filter.isLevelEnabled(level)) {
+            // fastpath
+            return;
+        }
+
         Instant instant = Instant.now();
         Supplier<String> msg = Util.cachingStringSupplier(() -> String.valueOf(message));
 

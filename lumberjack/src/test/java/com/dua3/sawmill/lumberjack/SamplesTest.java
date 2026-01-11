@@ -5,11 +5,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -50,9 +54,9 @@ class SamplesTest {
         String javaHome = System.getProperty("java.home");
         String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
 
-        Path projectRoot = Paths.get(System.getProperty("user.dir"));
+        Path projectRoot = Objects.requireNonNull(Paths.get(System.getProperty("user.dir")));
         if (projectRoot.endsWith("lumberjack")) {
-            projectRoot = projectRoot.getParent();
+            projectRoot = Objects.requireNonNull(projectRoot.getParent());
         }
 
         Path lumberjackClasses = projectRoot.resolve("lumberjack/build/classes/java/main");
@@ -68,13 +72,41 @@ class SamplesTest {
         );
 
         String mainClass = "com.dua3.sawmill.lumberjack.samples." + sampleName + ".Main";
+        
+        List<String> command = new ArrayList<>();
+        command.add(javaBin);
+        
+        // Pass JaCoCo agent if present
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        List<String> arguments = runtimeMxBean.getInputArguments();
+        for (String arg : arguments) {
+            if (arg.startsWith("-javaagent:") && arg.contains("jacoco")) {
+                String jacocoArg = arg;
+                if (jacocoArg.contains("destfile=")) {
+                    Path execFile = projectRoot.resolve("lumberjack/build/jacoco/samples-" + sampleName + ".exec");
+                    jacocoArg = jacocoArg.replaceAll("destfile=[^,]+", "destfile=" + execFile.toString());
+                }
+                // Exclude Log4j from instrumentation to avoid initialization issues
+                jacocoArg += ",excludes=org.apache.logging.log4j.*";
+                command.add(jacocoArg);
+            }
+        }
 
-        ProcessBuilder pb = new ProcessBuilder(javaBin, "-cp", combinedClasspath, mainClass);
+        command.addAll(List.of(
+                "-Dlog4j2.loggerContextFactory=com.dua3.sawmill.lumberjack.frontend.log4j.Log4jLoggerContextFactory",
+                "-Dslf4j.provider=com.dua3.sawmill.lumberjack.frontend.slf4j.LoggingServiceProviderSlf4j",
+                "-Dorg.apache.commons.logging.LogFactory=org.apache.commons.logging.impl.LogFactoryImpl",
+                "-Dorg.apache.commons.logging.Log=com.dua3.sawmill.lumberjack.frontend.jcl.LoggerJcl",
+                "-cp", combinedClasspath, 
+                mainClass
+        ));
+
+        ProcessBuilder pb = new ProcessBuilder(command);
         pb.redirectErrorStream(true);
         Process process = pb.start();
 
         List<String> output = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 System.out.println("[" + sampleName + "] " + line);

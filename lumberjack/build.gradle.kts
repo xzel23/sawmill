@@ -22,6 +22,7 @@ plugins {
     id("com.dua3.gradle.jdkprovider") version "0.4.0"
     id("com.dua3.cabe") version "3.1.0"
     id("com.github.spotbugs") version "6.4.8"
+    jacoco
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -84,6 +85,17 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    dependsOn(
+        ":lumberjack:samples:all:classes",
+        ":lumberjack:samples:jul:classes",
+        ":lumberjack:samples:jcl:classes",
+        ":lumberjack:samples:log4j:classes",
+        ":lumberjack:samples:slf4j:classes"
+    )
+}
+
+val jacocoTestReport by tasks.getting(JacocoReport::class) {
+    executionData.setFrom(fileTree(layout.buildDirectory.dir("jacoco")).include("*.exec"))
 }
 
 allprojects {

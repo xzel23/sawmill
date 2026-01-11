@@ -259,7 +259,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
     }
 
     @Override
-    public LogFilter getFilter() {
+    public synchronized LogFilter getFilter() {
         return filter;
     }
 
@@ -284,7 +284,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
      * Gets the log pattern.
      * @return the log pattern string
      */
-    public String getPattern() {
+    public synchronized String getPattern() {
         return logPattern.getPattern();
     }
 }

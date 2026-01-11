@@ -20,7 +20,7 @@ import org.jspecify.annotations.NullMarked;
  * Module-info for the Lumberjack logging backend library.
  */
 @NullMarked
-module lumberjack.logger {
+module sawmill.lumberjack {
     exports com.dua3.sawmill.lumberjack;
     exports com.dua3.sawmill.lumberjack.filter;
     exports com.dua3.sawmill.lumberjack.handler;

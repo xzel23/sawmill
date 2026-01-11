@@ -26,7 +26,7 @@ class FiltersTest {
         );
 
         assertEquals(expected, filter.isEnabled(loggerName, LogLevel.INFO, ""));
-        assertEquals(expected, filter.test(Instant.now(), loggerName, LogLevel.INFO, "", MDC.empty(), () -> "msg", "location", null));
+        assertEquals(expected, filter.test(Instant.now(), loggerName, LogLevel.INFO, "", null, () -> "msg", "location", null));
     }
 
     @Test
@@ -65,12 +65,7 @@ class FiltersTest {
 
         assertEquals(expected, filter.isMarkerEnabled(logMarker));
         assertEquals(expected, filter.isEnabled("logger", LogLevel.INFO, logMarker));
-        if (logMarker == null) {
-            assertThrows(NullPointerException.class, () -> filter.test(Instant.now(), "logger", LogLevel.INFO, logMarker, MDC.empty(), () -> "msg", "location", null),
-                    "FIXME: MarkerFilter.test() throws NPE when marker is null. Method signature does not specify @Nullable for mrk.");
-        } else {
-            assertEquals(expected, filter.test(Instant.now(), "logger", LogLevel.INFO, logMarker, MDC.empty(), () -> "msg", "location", null));
-        }
+        assertEquals(expected, filter.test(Instant.now(), "logger", LogLevel.INFO, logMarker, null, () -> "msg", "location", null));
     }
 
     @ParameterizedTest
@@ -82,7 +77,7 @@ class FiltersTest {
         MessageTextFilter filter = new MessageTextFilter("test", msg -> msg.contains(search));
 
         assertTrue(filter.isEnabled("logger", LogLevel.INFO, "")); // Message filter doesn't affect isEnabled usually
-        assertEquals(expected, filter.test(Instant.now(), "logger", LogLevel.INFO, "", MDC.empty(), () -> message, "location", null));
+        assertEquals(expected, filter.test(Instant.now(), "logger", LogLevel.INFO, "", null, () -> message, "location", null));
     }
 
     @Test
@@ -95,6 +90,6 @@ class FiltersTest {
         assertFalse(combined.isEnabled("logger", LogLevel.DEBUG, "IMPORTANT"));
         assertFalse(combined.isEnabled("logger", LogLevel.INFO, "TRIVIAL"));
 
-        assertTrue(combined.test(Instant.now(), "logger", LogLevel.INFO, "IMPORTANT", MDC.empty(), () -> "msg", "loc", null));
+        assertTrue(combined.test(Instant.now(), "logger", LogLevel.INFO, "IMPORTANT", null, () -> "msg", "loc", null));
     }
 }

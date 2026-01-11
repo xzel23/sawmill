@@ -220,13 +220,12 @@ public final class UniversalDispatcher implements LogDispatcher {
         Instant instant = Instant.now();
         Supplier<String> msg = Util.cachingStringSupplier(() -> formatJulMessage(logRecord.getMessage(), logRecord.getParameters()));
         LogLevel lvl = translateJulLevel(logRecord.getLevel());
-        MDC mdc = MDC.empty();
 
-        if (filter.test(instant, logRecord.getLoggerName(), lvl, "", mdc, msg, "", logRecord.getThrown())) {
+        if (filter.test(instant, logRecord.getLoggerName(), lvl, "", null, msg, "", logRecord.getThrown())) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(lvl)) {
-                    handler.handle(instant, logRecord.getLoggerName(), lvl, "", mdc, msg, "", logRecord.getThrown());
+                    handler.handle(instant, logRecord.getLoggerName(), lvl, "", null, msg, "", logRecord.getThrown());
                 }
             }
         }
@@ -285,13 +284,12 @@ public final class UniversalDispatcher implements LogDispatcher {
     public void dispatchJcl(String name, LogLevel level, @Nullable Object message, @Nullable Throwable t) {
         Instant instant = Instant.now();
         Supplier<String> msg = Util.cachingStringSupplier(() -> String.valueOf(message));
-        MDC mdc = MDC.empty();
 
-        if (filter.test(instant, name, level, "", mdc, msg, "", t)) {
+        if (filter.test(instant, name, level, "", null, msg, "", t)) {
             for (WeakReference<LogHandler> handlerRef : handlers) {
                 LogHandler handler = handlerRef.get();
                 if (handler != null && handler.isEnabled(level)) {
-                    handler.handle(instant, name, level, "", mdc, msg, "", t);
+                    handler.handle(instant, name, level, "", null, msg, "", t);
                 }
             }
         }

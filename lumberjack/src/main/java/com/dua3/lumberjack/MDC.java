@@ -25,22 +25,4 @@ public interface MDC {
     @Nullable String get(String key);
 
     Stream<Map.Entry<String, String>> stream();
-
-    public static MDC empty() {
-        return MDCConstants.EMPTY;
-    }
-}
-
-class MDCConstants {
-    static final MDC EMPTY = new MDC() {
-        @Override
-        public @Nullable String get(String key) {
-            return null;
-        }
-
-        @Override
-        public Stream<Map.Entry<String, String>> stream() {
-            return Stream.empty();
-        }
-    };
 }

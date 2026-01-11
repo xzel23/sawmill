@@ -36,8 +36,28 @@ public final class LogPattern {
     private static final String NEWLINE = System.lineSeparator();
     private static final ZoneId ZONE_ID = ZoneId.systemDefault();
 
-    private static final ThreadLocal<StringBuilder> SB_THREAD_LOCAL = ThreadLocal.withInitial(() -> new StringBuilder(256));
+    /**
+     * The default pattern used for log formatting in Log4J style.
+     * This pattern specifies the structure and content of log messages,
+     * including formatting placeholders for timestamps, log levels,
+     * logger names, and log messages. It also supports the inclusion
+     * of custom console color codes and newline characters.
+     *
+     * Components of the default pattern:
+     * - "%Cstart": Placeholder for the start of a custom console color sequence.
+     * - "%d{yyyy-MM-dd HH:mm:ss.SSS}": Timestamp in the specified date-time format.
+     * - "%-5level": Log level, left-aligned with a width of 5 characters.
+     * - "%logger": The name of the logger producing the log event.
+     * - "%msg": The log message content.
+     * - "%Cend": Placeholder for the end of a custom console color sequence.
+     * - "%n": Newline character.
+     */
     public static final String DEFAULT_PATTERN = "%Cstart%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger - %msg%Cend%n";
+
+    /**
+     * The default capacity for the {@link StringBuilder} instance that is used to format a log message.
+     */
+    private static final int DEFAULT_CAPACITY = 256;
 
     /**
      * Defines an interface for formatting log entries in a customizable and extensible manner.
@@ -715,14 +735,13 @@ public final class LogPattern {
      */
     public void formatLogEntry(PrintStream out, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, LocationResolver loc, Supplier<String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) {
         Location location = isLocationNeeded() ? loc.resolve() : null;
-        StringBuilder sb = SB_THREAD_LOCAL.get();
-        sb.setLength(0);
+        StringBuilder sb = new StringBuilder(DEFAULT_CAPACITY);
         for (LogPatternEntry entry : entries) {
             entry.format(sb, instant, loggerName, lvl, mrk, mdc, location, msg, t, consoleCodes);
         }
         out.print(sb);
         if (sb.length() > 4096) {
-            sb.setLength(256);
+            sb.setLength(DEFAULT_CAPACITY);
             sb.trimToSize();
         }
     }

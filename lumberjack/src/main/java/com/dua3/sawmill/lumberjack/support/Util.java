@@ -17,6 +17,7 @@ package com.dua3.sawmill.lumberjack.support;
 
 import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.function.Supplier;
 
 /**
@@ -44,24 +45,24 @@ public final class Util {
 
     /**
      * Appends the stack trace of a throwable to a StringBuilder.
-     * @param sb the StringBuilder to append to
+     * @param app the StringBuilder to append to
      * @param t the throwable
      */
-    public static void appendStackTrace(StringBuilder sb, Throwable t) {
-        sb.append(t).append(LINE_SEPARATOR);
+    public static void appendStackTrace(Appendable app, Throwable t) throws IOException {
+        app.append(String.valueOf(t)).append(LINE_SEPARATOR);
         for (StackTraceElement element : t.getStackTrace()) {
-            sb.append("\tat ").append(element).append(LINE_SEPARATOR);
+            app.append("\tat ").append(String.valueOf(element)).append(LINE_SEPARATOR);
         }
         for (Throwable suppressed : t.getSuppressed()) {
-            appendStackTraceEnclosed(sb, suppressed, t.getStackTrace(), "Suppressed: ", "\t");
+            appendStackTraceEnclosed(app, suppressed, t.getStackTrace(), "Suppressed: ", "\t");
         }
         Throwable cause = t.getCause();
         if (cause != null) {
-            appendStackTraceEnclosed(sb, cause, t.getStackTrace(), "Caused by: ", "");
+            appendStackTraceEnclosed(app, cause, t.getStackTrace(), "Caused by: ", "");
         }
     }
 
-    private static void appendStackTraceEnclosed(StringBuilder sb, Throwable t, StackTraceElement[] enclosingTrace, String caption, String indent) {
+    private static void appendStackTraceEnclosed(Appendable app, Throwable t, StackTraceElement[] enclosingTrace, String caption, String indent) throws IOException {
         StackTraceElement[] trace = t.getStackTrace();
         int m = trace.length - 1;
         int n = enclosingTrace.length - 1;
@@ -71,20 +72,20 @@ public final class Util {
         }
         int framesInCommon = trace.length - 1 - m;
 
-        sb.append(indent).append(caption).append(t).append(LINE_SEPARATOR);
+        app.append(indent).append(caption).append(String.valueOf(t)).append(LINE_SEPARATOR);
         for (int i = 0; i <= m; i++) {
-            sb.append(indent).append("\tat ").append(trace[i]).append(LINE_SEPARATOR);
+            app.append(indent).append("\tat ").append(String.valueOf(trace[i])).append(LINE_SEPARATOR);
         }
         if (framesInCommon != 0) {
-            sb.append(indent).append("\t... ").append(framesInCommon).append(" more").append(LINE_SEPARATOR);
+            app.append(indent).append("\t... ").append(String.valueOf(framesInCommon)).append(" more").append(LINE_SEPARATOR);
         }
 
         for (Throwable suppressed : t.getSuppressed()) {
-            appendStackTraceEnclosed(sb, suppressed, trace, "Suppressed: ", indent + "\t");
+            appendStackTraceEnclosed(app, suppressed, trace, "Suppressed: ", indent + "\t");
         }
         Throwable cause = t.getCause();
         if (cause != null) {
-            appendStackTraceEnclosed(sb, cause, trace, "Caused by: ", indent);
+            appendStackTraceEnclosed(app, cause, trace, "Caused by: ", indent);
         }
     }
 

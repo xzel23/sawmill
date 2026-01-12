@@ -189,7 +189,11 @@ public class FileHandler implements LogHandler, AutoCloseable {
             synchronized (this) {
                 checkRotation(instant);
                 if (out != null) {
-                    logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, loc, msg, t, null);
+                    try {
+                        logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, loc, msg, t, null);
+                    } catch (IOException e) {
+                        System.err.println("Error writing log entry: " + e.getMessage());
+                    }
                     currentEntries++;
                     entriesSinceLastFlush++;
                     if (shouldFlush(lvl)) {

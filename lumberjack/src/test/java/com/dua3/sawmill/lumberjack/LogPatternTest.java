@@ -6,6 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -90,7 +91,7 @@ class LogPatternTest {
                             + "|'2026-01-10 14:23:41.123 [main] INFO  service.OrderService [AUDIT] alice - Order 4711 processed\n'"
             }
     )
-    void testPattern(String pattern, String expected) {
+    void testPattern(String pattern, String expected) throws IOException {
         String threadName = Thread.currentThread().getName();
         String updatedExpected = expected.replace("main", threadName);
         LogPattern fmt = new LogPattern(pattern);
@@ -129,7 +130,7 @@ class LogPatternTest {
     }
 
     @Test
-    void testPatternWithThrowable() {
+    void testPatternWithThrowable() throws IOException {
         String pattern = "%msg%n%ex";
         LogPattern fmt = new LogPattern(pattern);
 

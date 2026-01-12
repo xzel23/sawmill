@@ -25,6 +25,7 @@ import com.dua3.sawmill.lumberjack.support.AnsiCode;
 import com.dua3.sawmill.lumberjack.LocationResolver;
 import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -114,7 +115,11 @@ public final class ConsoleHandler implements LogHandler {
     public void handle(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, LocationResolver loc, Supplier<String> msg, @Nullable Throwable t) {
         if (filter.test(instant, loggerName, lvl, mrk, mdc, msg, t)) {
             ConsoleCode consoleCodes = colorMap.get(lvl);
-            logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, loc, msg, t, consoleCodes);
+            try {
+                logPattern.formatLogEntry(out, instant, loggerName, lvl, mrk, mdc, loc, msg, t, consoleCodes);
+            } catch (IOException e) {
+                System.err.println("Error writing log entry: " + e.getMessage());
+            }
         }
     }
 

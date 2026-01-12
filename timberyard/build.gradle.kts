@@ -20,13 +20,14 @@ plugins {
 description = "Timberyard library"
 
 dependencies {
-    implementation("org.jspecify:jspecify:1.0.0")
-    testImplementation(platform("org.junit:junit-bom:6.0.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation(platform(libs.utility.bom))
+    implementation(libs.jspecify)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
 
     api(project(":lumberjack"))
-    implementation("com.dua3.utility:utility:20.4.2")
+    implementation(libs.utility)
 }
 
 tasks.test {

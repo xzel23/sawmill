@@ -19,9 +19,9 @@ plugins {
     id("java-library")
     id("maven-publish")
     id("signing")
-    id("com.dua3.gradle.jdkprovider") version "0.4.0"
-    id("com.dua3.cabe") version "3.1.0"
-    id("com.github.spotbugs") version "6.4.8"
+    alias(libs.plugins.jdkprovider)
+    alias(libs.plugins.cabe)
+    alias(libs.plugins.spotbugs)
     jacoco
 }
 
@@ -66,21 +66,21 @@ jdk {
 }
 
 dependencies {
-    implementation("org.jspecify:jspecify:1.0.0")
+    implementation(libs.jspecify)
 
-    compileOnly(platform("org.apache.logging.log4j:log4j-bom:2.25.3"))
-    compileOnly("org.apache.logging.log4j:log4j-api")
-    compileOnly("org.slf4j:slf4j-api:2.0.17")
-    compileOnly("commons-logging:commons-logging:1.3.5")
+    compileOnly(platform(libs.log4j.bom))
+    compileOnly(libs.log4j.api)
+    compileOnly(libs.slf4j.api)
+    compileOnly(libs.commons.logging)
 
-    testImplementation(platform("org.junit:junit-bom:6.0.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
 
-    testImplementation(platform("org.apache.logging.log4j:log4j-bom:2.25.3"))
-    testImplementation("org.apache.logging.log4j:log4j-api")
-    testImplementation("org.slf4j:slf4j-api:2.0.17")
-    testImplementation("commons-logging:commons-logging:1.3.5")
+    testImplementation(platform(libs.log4j.bom))
+    testImplementation(libs.log4j.api)
+    testImplementation(libs.slf4j.api)
+    testImplementation(libs.commons.logging)
 }
 
 tasks.test {

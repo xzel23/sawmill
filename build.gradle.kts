@@ -1,5 +1,5 @@
 plugins {
-    id("com.dua3.gradle.jdkprovider") version "0.4.0"
+    alias(libs.plugins.jdkprovider)
 }
 
 allprojects {

@@ -1,3 +1,3 @@
 dependencies {
-    implementation("commons-logging:commons-logging:1.3.5")
+    implementation(libs.commons.logging)
 }

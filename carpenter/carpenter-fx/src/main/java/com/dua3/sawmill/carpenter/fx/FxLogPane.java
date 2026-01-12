@@ -1,7 +1,7 @@
 package com.dua3.sawmill.carpenter.fx;
 
-import com.dua3.sawmill.lumberjack.LogLevel;
-import com.dua3.sawmill.lumberjack.LogPattern;
+import org.slb4j.LogLevel;
+import org.slb4j.LogPattern;
 import com.dua3.sawmill.timberyard.LogBuffer;
 import com.dua3.sawmill.timberyard.LogEntry;
 import com.dua3.utility.application.ApplicationUtil;

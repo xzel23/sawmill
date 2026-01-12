@@ -21,5 +21,5 @@ module sawmill.timberyard {
     exports com.dua3.sawmill.timberyard;
     requires org.jspecify;
     requires com.dua3.utility;
-    requires sawmill.lumberjack;
+    requires org.slb4j;
 }

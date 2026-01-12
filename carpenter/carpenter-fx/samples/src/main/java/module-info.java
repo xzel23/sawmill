@@ -1,7 +1,7 @@
 module sawmill.carpenter.carpenter.fx.samples.main {
     requires javafx.graphics;
     requires sawmill.carpenter.fx;
-    requires sawmill.lumberjack;
+    requires org.slb4j;
     requires org.slf4j;
     requires org.apache.commons.logging;
     requires java.logging;

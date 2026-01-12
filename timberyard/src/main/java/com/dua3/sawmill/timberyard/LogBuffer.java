@@ -1,11 +1,11 @@
 package com.dua3.sawmill.timberyard;
 
-import com.dua3.sawmill.lumberjack.Location;
-import com.dua3.sawmill.lumberjack.LocationResolver;
-import com.dua3.sawmill.lumberjack.LogFilter;
-import com.dua3.sawmill.lumberjack.LogHandler;
-import com.dua3.sawmill.lumberjack.LogLevel;
-import com.dua3.sawmill.lumberjack.MDC;
+import org.slb4j.Location;
+import org.slb4j.LocationResolver;
+import org.slb4j.LogFilter;
+import org.slb4j.LogHandler;
+import org.slb4j.LogLevel;
+import org.slb4j.MDC;
 import com.dua3.utility.lang.RingBuffer;
 import org.jspecify.annotations.Nullable;
 

@@ -23,7 +23,7 @@ import org.jspecify.annotations.NullMarked;
 module sawmill.carpenter.fx {
     exports com.dua3.sawmill.carpenter.fx;
 
-    requires sawmill.lumberjack;
+    requires org.slb4j;
     requires sawmill.timberyard;
     requires org.jspecify;
     requires com.dua3.utility;

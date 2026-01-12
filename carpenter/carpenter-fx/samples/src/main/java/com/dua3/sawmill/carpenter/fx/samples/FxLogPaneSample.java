@@ -4,8 +4,8 @@ import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
 import atlantafx.base.theme.Theme;
 import com.dua3.sawmill.carpenter.fx.FxLogPane;
-import com.dua3.sawmill.lumberjack.LogLevel;
-import com.dua3.sawmill.lumberjack.Lumberjack;
+import org.slb4j.LogLevel;
+import org.slb4j.SLB4J;
 import com.dua3.utility.application.ApplicationUtil;
 import com.dua3.utility.application.UiMode;
 import com.dua3.utility.fx.PlatformHelper;
@@ -30,7 +30,7 @@ public class FxLogPaneSample extends Application {
 
     static {
         // this has to be done before the first logger is initialized!
-        Lumberjack.init();
+        SLB4J.init();
         ApplicationUtil.setUiMode(UiMode.SYSTEM_DEFAULT);
     }
 

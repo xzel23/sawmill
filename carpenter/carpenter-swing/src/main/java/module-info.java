@@ -23,7 +23,7 @@ import org.jspecify.annotations.NullMarked;
 module sawmill.carpenter.swing {
     exports com.dua3.sawmill.carpenter.swing;
 
-    requires sawmill.lumberjack;
+    requires org.slb4j;
     requires sawmill.timberyard;
     requires org.jspecify;
 }

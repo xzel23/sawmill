@@ -26,7 +26,7 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
 
-    api(project(":lumberjack"))
+    api(project(":slb4j"))
     implementation(libs.utility)
 }
 

@@ -1,16 +1,16 @@
 Project Sawmill
 ===============
 
-- **Lumberjack**: A lightweight, zero-dependencies logging backend for Java.
+- **SLB4J**: A lightweight, zero-dependencies logging backend for Java.
 - **Timberyard**: Make Lumberjack's output available for further processing, for example implements a LogBuffer.
 - **Carpenter**: Builds on Timberland, provides UI-Elements for live monitoring log messages.
 
 All projects use Java 21 as baseline.
 
-Lumberjack
-----------
+SLB4J (codename Lumberjack)
+---------------------------
 
-Lumberjack is a lightweight, zero-dependencies logging backend for Java.
+SLB4J is a lightweight, zero-dependencies logging backend for Java.
 
 ### Features
 
@@ -28,8 +28,8 @@ Lumberjack is a lightweight, zero-dependencies logging backend for Java.
 
 - __Do not__ include any other logging backend (log4j-core, logback, etc.)
 - __Do not__ add any logging bridge handler
-- Add the single Lumberjack dependency to your code.
-- Add a single line of code that executes at application startup and initializes the backend.
+- Add the single SLB4J dependency to your code.
+- Add `SLB4J.init()` in a static initializer block of the class containing your `main()` method.
 - Provide a logging.properties file to configure the logging backend. (optional)
 
 ### Configuration
@@ -38,4 +38,4 @@ TODO describe format of logging.properties and runtime configuration.
 
 ### Performance
 
-TODO: Implement and benchmarks and add results for lumberjack and other backends here.
+TODO: Implement and benchmarks and add results for slb4j and other backends here.

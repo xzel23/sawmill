@@ -1,8 +1,8 @@
 package com.dua3.sawmill.timberyard;
 
-import com.dua3.sawmill.lumberjack.Location;
-import com.dua3.sawmill.lumberjack.LogLevel;
-import com.dua3.sawmill.lumberjack.MDC;
+import org.slb4j.Location;
+import org.slb4j.LogLevel;
+import org.slb4j.MDC;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;

@@ -15,13 +15,13 @@
  */
 rootProject.name = "sawmill"
 
-include("lumberjack")
-include("lumberjack:benchmark")
-include("lumberjack:samples:jul")
-include("lumberjack:samples:jcl")
-include("lumberjack:samples:log4j")
-include("lumberjack:samples:slf4j")
-include("lumberjack:samples:all")
+include("slb4j")
+include("slb4j:benchmark")
+include("slb4j:samples:jul")
+include("slb4j:samples:jcl")
+include("slb4j:samples:log4j")
+include("slb4j:samples:slf4j")
+include("slb4j:samples:all")
 include("timberyard")
 include("carpenter")
 //include("carpenter:carpenter-fx")

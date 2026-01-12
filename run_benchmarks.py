@@ -4,7 +4,7 @@ import json
 import shutil
 
 backends = {
-    "lumberjack": "LumberjackBenchmark",
+    "slb4j": "SLB4JBenchmark",
     "log4j": "Log4jBenchmark",
     "logback": "LogbackBenchmark",
     "jul": "JulBenchmark"
@@ -28,9 +28,9 @@ def collect_results():
 
     for backend, benchmark_class in backends.items():
         print(f"Testing backend: {backend}")
-        cmd = f"./gradlew :lumberjack:benchmark:jmh -Pbackend={backend} -Pjmh.includes='{benchmark_class}'"
+        cmd = f"./gradlew :slb4j:benchmark:jmh -Pbackend={backend} -Pjmh.includes='{benchmark_class}'"
         if run_command(cmd):
-            src_json = "lumberjack/benchmark/build/results/jmh/results.json"
+            src_json = "slb4j/benchmark/build/results/jmh/results.json"
             dest_json = os.path.join(results_dir, f"results_{backend}.json")
             if os.path.exists(src_json):
                 shutil.copy(src_json, dest_json)

@@ -13,13 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-rootProject.name = "sawmill"
+plugins {
+    id("java-library")
+}
 
-include("lumberjack")
-include("lumberjack:benchmark")
-include("lumberjack:samples:jul")
-include("lumberjack:samples:jcl")
-include("lumberjack:samples:log4j")
-include("lumberjack:samples:slf4j")
-include("lumberjack:samples:all")
-include("timberyard")
+description = "Timberyard library"
+
+dependencies {
+    implementation("org.jspecify:jspecify:1.0.0")
+    testImplementation(platform("org.junit:junit-bom:6.0.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    api(project(":lumberjack"))
+    implementation("com.dua3.utility:utility:20.4.2")
+}
+
+tasks.test {
+    useJUnitPlatform()
+}

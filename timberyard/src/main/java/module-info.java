@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-rootProject.name = "sawmill"
 
-include("lumberjack")
-include("lumberjack:benchmark")
-include("lumberjack:samples:jul")
-include("lumberjack:samples:jcl")
-include("lumberjack:samples:log4j")
-include("lumberjack:samples:slf4j")
-include("lumberjack:samples:all")
-include("timberyard")
+/**
+ * Module-info for the Timberyard library.
+ */
+module sawmill.timberyard {
+    exports com.dua3.sawmill.timberyard;
+    requires org.jspecify;
+    requires com.dua3.utility;
+    requires sawmill.lumberjack;
+}

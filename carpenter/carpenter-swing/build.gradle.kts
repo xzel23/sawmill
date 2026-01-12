@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-rootProject.name = "sawmill"
+plugins {
+    id("java-library")
+}
 
-include("lumberjack")
-include("lumberjack:benchmark")
-include("lumberjack:samples:jul")
-include("lumberjack:samples:jcl")
-include("lumberjack:samples:log4j")
-include("lumberjack:samples:slf4j")
-include("lumberjack:samples:all")
-include("timberyard")
-include("carpenter")
-//include("carpenter:carpenter-fx")
-//include("carpenter:carpenter-fx:samples")
-//include("carpenter:carpenter-swing")
-//include("carpenter:carpenter-swing:samples")
+description = "Carpenter Swing log viewer"
+
+dependencies {
+    implementation("org.jspecify:jspecify:1.0.0")
+    testImplementation(platform("org.junit:junit-bom:6.0.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    api(project(":lumberjack"))
+    implementation(project(":timberyard"))
+}
+
+tasks.test {
+    useJUnitPlatform()
+}

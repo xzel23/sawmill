@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-rootProject.name = "sawmill"
 
-include("lumberjack")
-include("lumberjack:benchmark")
-include("lumberjack:samples:jul")
-include("lumberjack:samples:jcl")
-include("lumberjack:samples:log4j")
-include("lumberjack:samples:slf4j")
-include("lumberjack:samples:all")
-include("timberyard")
-include("carpenter")
-//include("carpenter:carpenter-fx")
-//include("carpenter:carpenter-fx:samples")
-//include("carpenter:carpenter-swing")
-//include("carpenter:carpenter-swing:samples")
+import org.jspecify.annotations.NullMarked;
+
+/**
+ * Module-info for the Carpenter JavaFX log viewer.
+ */
+@NullMarked
+module sawmill.carpenter.fx {
+    exports com.dua3.sawmill.carpenter.fx;
+
+    requires sawmill.lumberjack;
+    requires sawmill.timberyard;
+    requires org.jspecify;
+    requires com.dua3.utility;
+    requires com.dua3.utility.fx;
+    requires javafx.base;
+    requires javafx.controls;
+    requires javafx.graphics;
+    requires java.logging;
+}

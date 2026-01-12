@@ -13,18 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-rootProject.name = "sawmill"
 
-include("lumberjack")
-include("lumberjack:benchmark")
-include("lumberjack:samples:jul")
-include("lumberjack:samples:jcl")
-include("lumberjack:samples:log4j")
-include("lumberjack:samples:slf4j")
-include("lumberjack:samples:all")
-include("timberyard")
-include("carpenter")
-//include("carpenter:carpenter-fx")
-//include("carpenter:carpenter-fx:samples")
-//include("carpenter:carpenter-swing")
-//include("carpenter:carpenter-swing:samples")
+description = "Carpenter log viewers"

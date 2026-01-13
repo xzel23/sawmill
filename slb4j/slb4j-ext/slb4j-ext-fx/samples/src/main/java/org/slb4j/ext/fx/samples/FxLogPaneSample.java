@@ -136,7 +136,7 @@ public class FxLogPaneSample extends Application {
                                 case 1 -> JCL_LOGGER.debug(msg);
                                 case 2 -> JCL_LOGGER.info(msg);
                                 case 3 -> JCL_LOGGER.warn(msg);
-                                case 4 -> JCL_LOGGER.error(msg);
+                                case 4 -> JCL_LOGGER.error(msg, generateThrowable());
                                 case 5 -> JCL_LOGGER.fatal(msg, generateThrowable());
                                 default -> throw new IllegalStateException("integer out of range");
                             }

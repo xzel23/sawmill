@@ -11,10 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -84,7 +82,7 @@ class SamplesTest {
                 String jacocoArg = arg;
                 if (jacocoArg.contains("destfile=")) {
                     Path execFile = projectRoot.resolve("slb4j/build/jacoco/samples-" + sampleName + ".exec");
-                    jacocoArg = jacocoArg.replaceAll("destfile=[^,]+", "destfile=" + execFile.toString());
+                    jacocoArg = jacocoArg.replaceAll("destfile=[^,]+", "destfile=" + execFile);
                 }
                 // Exclude Log4j from instrumentation to avoid initialization issues
                 jacocoArg += ",excludes=org.apache.logging.log4j.*";

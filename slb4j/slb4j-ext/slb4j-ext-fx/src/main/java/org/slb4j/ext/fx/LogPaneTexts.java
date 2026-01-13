@@ -7,21 +7,21 @@ public interface LogPaneTexts {
 
     String textClear();
 
-    String textLogLevel();
+    String labelFilterLogLevel();
 
-    String textLogger();
+    String labelFilterLogger();
 
-    String textLogText();
+    String labelFilterLogMessage();
 
-    String textSearch();
+    String labelSearchText();
 
-    String textColumnTime();
+    String headerTimeColumn();
 
-    String textColumnLevel();
+    String headerLevelColumn();
 
-    String textColumnLogger();
+    String headerLoggerColumn();
 
-    String textColumnMessage();
+    String headerMessageColumn();
 
     static LogPaneTexts of(
             String textSearchUp,
@@ -44,13 +44,13 @@ record LogPaneTextsRecord(
         String textSearchUp,
         String textSearchDown,
         String textClear,
-        String textLogLevel,
-        String textLogger,
-        String textLogText,
-        String textSearch,
-        String textColumnTime,
-        String textColumnLevel,
-        String textColumnLogger,
-        String textColumnMessage
+        String labelFilterLogLevel,
+        String labelFilterLogger,
+        String labelFilterLogMessage,
+        String labelSearchText,
+        String headerTimeColumn,
+        String headerLevelColumn,
+        String headerLoggerColumn,
+        String headerMessageColumn
 ) implements LogPaneTexts {
 }

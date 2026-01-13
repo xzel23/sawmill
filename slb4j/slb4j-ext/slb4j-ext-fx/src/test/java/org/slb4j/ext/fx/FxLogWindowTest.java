@@ -1,7 +1,6 @@
 package org.slb4j.ext.fx;
 
 import javafx.scene.Scene;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;

@@ -15,6 +15,7 @@
  */
 package org.slb4j.dispatcher;
 
+import org.slb4j.LocationResolver;
 import org.slb4j.LogDispatcher;
 import org.slb4j.LogFilter;
 import org.slb4j.LogHandler;
@@ -171,7 +172,7 @@ public final class UniversalDispatcher implements LogDispatcher {
         }
     }
 
-    private static final StackWalkerLocationResolver LOCATION_RESOLVER_LOG4J = new StackWalkerLocationResolver(SLB4J.class.getPackageName(), "org.apache.logging");
+    private static final LocationResolver LOCATION_RESOLVER_LOG4J = new StackWalkerLocationResolver(SLB4J.class.getPackageName(), "org.apache.logging");
 
     /**
      * Dispatches an SLF4J logging event to all registered {@link LogHandler} instances.
@@ -206,7 +207,7 @@ public final class UniversalDispatcher implements LogDispatcher {
         }
     }
 
-    private static final StackWalkerLocationResolver LOCATION_RESOLVER_SLF4J = new StackWalkerLocationResolver(SLB4J.class.getPackageName(), "org.slf4j");
+    private static final LocationResolver LOCATION_RESOLVER_SLF4J = new StackWalkerLocationResolver(SLB4J.class.getPackageName(), "org.slf4j");
 
     /**
      * Formats an SLF4J-style message pattern using the provided arguments.
@@ -257,7 +258,7 @@ public final class UniversalDispatcher implements LogDispatcher {
         }
     }
 
-    private static final StackWalkerLocationResolver LOCATION_RESOLVER_JUL = new StackWalkerLocationResolver(SLB4J.class.getPackageName(), "java.util.logging");
+    private static final LocationResolver LOCATION_RESOLVER_JUL = new StackWalkerLocationResolver(SLB4J.class.getPackageName(), "java.util.logging");
 
     /**
      * Formats a message pattern using the provided parameters. If the parameters are null
@@ -328,6 +329,6 @@ public final class UniversalDispatcher implements LogDispatcher {
         }
     }
 
-    private static final StackWalkerLocationResolver LOCATION_RESOLVER_JCL = new StackWalkerLocationResolver(SLB4J.class.getPackageName(), "org.apache.commons.logging");
+    private static final LocationResolver LOCATION_RESOLVER_JCL = new StackWalkerLocationResolver(SLB4J.class.getPackageName(), "org.apache.commons.logging");
 
 }

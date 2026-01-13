@@ -2,10 +2,12 @@ package org.slb4j.samples.all;
 
 import org.slb4j.SLB4J;
 
-public class Main {
+public final class Main {
     static {
         SLB4J.init();
     }
+
+    private Main() {}
 
     public static void main(String[] args) {
         // JUL

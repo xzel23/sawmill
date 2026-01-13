@@ -4,10 +4,12 @@ import org.slb4j.SLB4J;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Main {
+public final class Main {
     static {
         SLB4J.init();
     }
+
+    private Main() {}
 
     public static void main(String[] args) {
         Logger logger = LoggerFactory.getLogger(Main.class);

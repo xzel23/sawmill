@@ -33,7 +33,7 @@ public final class LoggingServiceProviderSlf4j implements SLF4JServiceProvider {
      */
     public LoggingServiceProviderSlf4j() { /* nothing to do */ }
 
-    private final LoggerFactorySlf4j loggerFactory = new LoggerFactorySlf4j();
+    private final ILoggerFactory loggerFactory = new LoggerFactorySlf4j();
     private final IMarkerFactory markerFactory = new BasicMarkerFactory();
     private final MDCAdapter mdcAdapter = new NOPMDCAdapter();
 

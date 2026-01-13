@@ -80,8 +80,25 @@ public class FxLogPane extends BorderPane {
      * of the appearance of log entries based on their log level.
      */
     public static final String CSS_PREFIX_LOGLEVEL = "log-";
-    public static final int MAX_BUFFER_SIZE = 4096;
 
+    /**
+     * Predefined default texts used for various labels, buttons, and table headers
+     * in the {@code FxLogPane} component. These texts act as standard default values
+     * for visual elements such as search buttons, log level indicators, and column headers.
+     * <ul>
+     * <li>"Up": Label for the upward search button.
+     * <li>"Down": Label for the downward search button.
+     * <li>"Clear": Label for the button to clear logs.
+     * <li>"Level": Label for the level filter.
+     * <li>"Logger": Label for the logger filter.
+     * <li>"Text": Label for the message text filter.
+     * <li>"Search": Label for the search text field.
+     * <li>"Time": Header text for the timestamp column.
+     * <li>"Level": Header text for the second log level column.
+     * <li>"Logger": Header text for the second logger column.
+     * <li>"Message": Header text for the log message column.
+     * </ul>
+     */
     public static final LogPaneTexts DEFAULT_TEXTS = LogPaneTexts.of(
             "Up",
             "Down",
@@ -96,7 +113,25 @@ public class FxLogPane extends BorderPane {
             "Message"
     );
 
-    public final StringBuilder buffer = new StringBuilder(MAX_BUFFER_SIZE);
+    /**
+     * Represents the maximum buffer size for storing log entries in the `FxLogPane` class.
+     * This constant defines the upper limit on the number of bytes that can be buffered
+     * and is used to manage memory and performance effectively.
+     * <p>
+     * The value of `MAX_BUFFER_SIZE` is set to 4096, which is suitable for handling
+     * a moderate amount of log data in typical use cases.
+     */
+    private static final int MAX_BUFFER_SIZE = 4096;
+
+    /**
+     * A {@code StringBuilder} instance used as a buffer for accumulating
+     * log entry data before rendering or outputting. The initial capacity of
+     * the buffer is defined by the constant {@code MAX_BUFFER_SIZE}.
+     * <p>
+     * As all log message formatting int this class must happen on the
+     * FX Application thread, we use a single instance to avoid GC flooding.
+     */
+    private final StringBuilder buffer = new StringBuilder(MAX_BUFFER_SIZE);
 
     private final LogBuffer logBuffer;
     private boolean dark = false;
@@ -115,16 +150,14 @@ public class FxLogPane extends BorderPane {
         TableColumn<LogEntry, T> column = new TableColumn<>(name);
         column.setCellValueFactory(entry -> new SimpleObjectProperty<>(getter.apply(entry.getValue())));
         if (sampleTexts.length == 0) {
-            column.setPrefWidth(COLUMN_WIDTH_LARGE);
             column.setMaxWidth(COLUMN_WIDTH_MAX);
         } else {
             double w = 24 + Stream.of(sampleTexts).mapToDouble(FxLogPane::getDisplayWidth).max().orElse(200);
-            column.setPrefWidth(w);
             if (fixedWidth) {
                 column.setMinWidth(w);
                 column.setMaxWidth(w);
             } else {
-                column.setMaxWidth(COLUMN_WIDTH_MAX);
+                column.setPrefWidth(w);
             }
         }
         column.setCellFactory(col -> new TableCell<LogEntry, @Nullable T>() {
@@ -258,14 +291,14 @@ public class FxLogPane extends BorderPane {
 
         // create toolbar
         toolBar.getItems().setAll(
-                new Label(texts.textLogLevel()),
+                new Label(texts.labelFilterLogLevel()),
                 cbLogLevel,
-                new Label(texts.textLogger()),
+                new Label(texts.labelFilterLogger()),
                 tfLoggerName,
-                new Label(texts.textLogText()),
+                new Label(texts.labelFilterLogMessage()),
                 tfMessageContent,
                 new Separator(Orientation.HORIZONTAL),
-                new Label(texts.textSearch()),
+                new Label(texts.labelSearchText()),
                 tfSearchText,
                 btnSearchUp,
                 btnSearchDown,
@@ -275,14 +308,13 @@ public class FxLogPane extends BorderPane {
 
         // define table columns
         tableView.setEditable(false);
-        tableView.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
-        //noinspection unchecked
         tableView.getColumns().setAll(
-                createColumn(texts.textColumnTime(), LogEntry::time, true, "8888-88-88T88:88:88.8888888"),
-                createColumn(texts.textColumnLevel(), LogEntry::level, true, Arrays.stream(LogLevel.values()).map(Object::toString).toArray(String[]::new)),
-                createColumn(texts.textColumnLogger(), LogEntry::logger, false, "X".repeat(20)),
-                createColumn(texts.textColumnMessage(), LogEntry::message, false)
+                createColumn(texts.headerTimeColumn(), LogEntry::time, true, "8888-88-88T88:88:88.8888888"),
+                createColumn(texts.headerLevelColumn(), LogEntry::level, true, Arrays.stream(LogLevel.values()).map(Object::toString).toArray(String[]::new)),
+                createColumn(texts.headerLoggerColumn(), LogEntry::logger, false, "X".repeat(20)),
+                createColumn(texts.headerMessageColumn(), LogEntry::message, false)
         );
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
         // disable autoscroll if the selection is not empty, enable when selection is cleared while scrolled to bottom
         tableView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {

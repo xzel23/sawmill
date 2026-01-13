@@ -72,7 +72,7 @@ class FileHandlerTest {
 
         List<String> lines = Files.readAllLines(logFile);
         assertEquals(1, lines.size());
-        assertEquals("New content", lines.get(0));
+        assertEquals("New content", lines.getFirst());
     }
 
     @Test
@@ -98,7 +98,7 @@ class FileHandlerTest {
 
         List<String> currentLines = Files.readAllLines(logFile);
         assertEquals(1, currentLines.size());
-        assertEquals("Line 3", currentLines.get(0));
+        assertEquals("Line 3", currentLines.getFirst());
 
         List<String> backupLines = Files.readAllLines(tempDir.resolve("test-size.log.1"));
         assertEquals(2, backupLines.size());
@@ -123,7 +123,7 @@ class FileHandlerTest {
         assertTrue(Files.exists(logFile));
         assertTrue(Files.exists(tempDir.resolve("test-entries.log.1")));
 
-        assertEquals("Line 3", Files.readAllLines(logFile).get(0));
+        assertEquals("Line 3", Files.readAllLines(logFile).getFirst());
         assertEquals("Line 1", Files.readAllLines(tempDir.resolve("test-entries.log.1")).get(0));
         assertEquals("Line 2", Files.readAllLines(tempDir.resolve("test-entries.log.1")).get(1));
     }

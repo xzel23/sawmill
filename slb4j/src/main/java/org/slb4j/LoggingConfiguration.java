@@ -299,8 +299,7 @@ public final class LoggingConfiguration {
                             throw new IllegalArgumentException("handler '" + name + "' - invalid value for '" + prefix + LOGGER_CONSOLE_COLORED + "': '" + sColored + "'");
                 };
 
-                ConsoleHandler consoleHandler = new ConsoleHandler(name, stream, colored);
-                yield consoleHandler;
+                yield new ConsoleHandler(name, stream, colored);
             }
             case "file" -> {
                 String sPath = properties.getProperty(prefix + LOGGER_FILE_PATH, name + ".log").strip();

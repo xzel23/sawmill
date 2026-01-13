@@ -146,9 +146,9 @@ public class FxLogPane extends BorderPane {
 
     private boolean autoScroll = true;
 
-    private <T> TableColumn<LogEntry, T> createColumn(String name, Function<? super LogEntry, ? extends @Nullable T> getter, boolean fixedWidth, String... sampleTexts) {
-        TableColumn<LogEntry, T> column = new TableColumn<>(name);
-        column.setCellValueFactory(entry -> new SimpleObjectProperty<>(getter.apply(entry.getValue())));
+    private TableColumn<LogEntry, LogEntry> createColumn(String name, LogPattern.LogPatternEntry entry, boolean fixedWidth, String... sampleTexts) {
+        TableColumn<LogEntry, LogEntry> column = new TableColumn<>(name);
+        column.setCellValueFactory(cd -> new SimpleObjectProperty<>(cd.getValue()));
         if (sampleTexts.length == 0) {
             column.setPrefWidth(COLUMN_WIDTH_LARGE);
             column.setMaxWidth(COLUMN_WIDTH_MAX);
@@ -163,18 +163,33 @@ public class FxLogPane extends BorderPane {
                 column.setMaxWidth(COLUMN_WIDTH_MAX);
             }
         }
-        column.setCellFactory(col -> new TableCell<LogEntry, @Nullable T>() {
+        column.setCellFactory(col -> new TableCell<>() {
             @Override
-            protected void updateItem(@Nullable T item, boolean empty) {
+            protected void updateItem(@Nullable LogEntry item, boolean empty) {
                 super.updateItem(item, empty);
-                TableRow<LogEntry> row = getTableRow();
-                if (empty || row == null || row.getItem() == null) {
+                if (empty || item == null) {
                     setText(null);
                     setStyle(null);
                 } else {
-                    setText(item == null ? "" : item.toString());
+                    try {
+                        StringBuilder sb = getStringBuilder();
+                        entry.format(
+                                sb,
+                                item.time(),
+                                item.logger(),
+                                item.level(),
+                                item.marker(),
+                                item.mdc(),
+                                item.location(),
+                                item::message,
+                                item.throwable(),
+                                ConsoleCode.empty()
+                        );
+                        setText(sb.toString());
+                    } catch (IOException e) {
+                        setText("ERROR");
+                    }
                 }
-                super.updateItem(item, empty);
             }
         });
         return column;
@@ -312,10 +327,10 @@ public class FxLogPane extends BorderPane {
         // define table columns
         tableView.setEditable(false);
         tableView.getColumns().setAll(
-                createColumn(texts.headerTimeColumn(), LogEntry::time, true, "8888-88-88T88:88:88.8888888"),
-                createColumn(texts.headerLevelColumn(), LogEntry::level, true, Arrays.stream(LogLevel.values()).map(Object::toString).toArray(String[]::new)),
-                createColumn(texts.headerLoggerColumn(), LogEntry::logger, false, "X".repeat(20)),
-                createColumn(texts.headerMessageColumn(), LogEntry::message, false)
+                createColumn(texts.headerTimeColumn(), new LogPattern.DateEntry("HH:mm:ss,SSS"), true, "88:88:88,888"),
+                createColumn(texts.headerLevelColumn(), new LogPattern.LevelEntry(0, 0, false), true, Arrays.stream(LogLevel.values()).map(Object::toString).toArray(String[]::new)),
+                createColumn(texts.headerLoggerColumn(), new LogPattern.LoggerEntry(0, 0, true, 0), false, "X".repeat(40)),
+                createColumn(texts.headerMessageColumn(), new LogPattern.MessageEntry(0, 0, false), false)
         );
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 

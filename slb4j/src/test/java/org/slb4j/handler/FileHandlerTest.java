@@ -1,10 +1,8 @@
 package org.slb4j.handler;
 
-import org.slb4j.Location;
 import org.slb4j.LogLevel;
 import org.slb4j.LocationResolver;
 import org.slb4j.LogPattern;
-import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -19,12 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FileHandlerTest {
 
-    private static final LocationResolver LOC = new LocationResolver() {
-        @Override
-        public @Nullable Location resolve() {
-            return null;
-        }
-    };
+    private static final LocationResolver LOC = () -> null;
 
     @TempDir
     Path tempDir;

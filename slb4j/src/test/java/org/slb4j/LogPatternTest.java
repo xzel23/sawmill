@@ -20,30 +20,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class LogPatternTest {
 
-    private static final LocationResolver LOC = new LocationResolver() {
+    private static final LocationResolver LOC = () -> new Location() {
         @Override
-        public @Nullable Location resolve() {
-            return new Location() {
-                @Override
-                public String getClassName() {
-                    return "com.example.service.OrderService";
-                }
+        public String getClassName() {
+            return "com.example.service.OrderService";
+        }
 
-                @Override
-                public @Nullable String getMethodName() {
-                    return "processOrder";
-                }
+        @Override
+        public @Nullable String getMethodName() {
+            return "processOrder";
+        }
 
-                @Override
-                public int getLineNumber() {
-                    return 42;
-                }
+        @Override
+        public int getLineNumber() {
+            return 42;
+        }
 
-                @Override
-                public @Nullable String getFileName() {
-                    return "OrderService.java";
-                }
-            };
+        @Override
+        public @Nullable String getFileName() {
+            return "OrderService.java";
         }
     };
 

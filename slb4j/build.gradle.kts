@@ -33,7 +33,7 @@ object Meta {
     const val VERSION = "0.1-SNAPSHOT"
     const val DESCRIPTION = "Simple Logging Backend for Java"
     const val INCEPTION_YEAR = "2026"
-    const val GROUP = "com.dua3"
+    const val GROUP = "org.slb4j"
     const val SCM = "https://github.com/xzel23/sawmill.git"
     const val LICENSE_NAME = "The Apache Software License, Version 2.0"
     const val LICENSE_URL = "https://www.apache.org/licenses/LICENSE-2.0.txt"
@@ -56,14 +56,6 @@ fun isDevelopmentVersion(versionString: String): Boolean {
 
 val isReleaseVersion = !isDevelopmentVersion(project.version.toString())
 val isSnapshot = project.version.toString().toDefaultLowerCase().contains("snapshot")
-
-repositories {
-    mavenCentral()
-}
-
-jdk {
-    version = 21
-}
 
 dependencies {
     implementation(libs.jspecify)
@@ -99,6 +91,15 @@ val jacocoTestReport by tasks.getting(JacocoReport::class) {
 }
 
 allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    jdk {
+        version = 21
+    }
+
     // --- PUBLISHING ---
 
     if (pluginManager.hasPlugin("maven-publish")) {

@@ -2,8 +2,7 @@ Project Sawmill
 ===============
 
 - **SLB4J**: A lightweight, zero-dependencies logging backend for Java.
-- **Timberyard**: Make Lumberjack's output available for further processing, for example implements a LogBuffer.
-- **Carpenter**: Builds on Timberland, provides UI-Elements for live monitoring log messages.
+- **SLB4J-EXT**: Extensions for SLB4J, for example `LogBuffer`, and UI components for JavaFX and Swing.
 
 All projects use Java 21 as baseline.
 

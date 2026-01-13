@@ -22,6 +22,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -89,5 +90,31 @@ public final class CombinedFilter implements LogFilter {
             }
         }
         return true;
+    }
+
+    @Override
+    public LogFilter firstApply(LogFilter filter) {
+        if (Objects.equals(filter, LogFilter.allPass())) return this;
+        if (Objects.equals(filter, LogFilter.nonePass())) return filter;
+
+        LogFilter[] newFilters = new LogFilter[filters.length + 1];
+        newFilters[0] = filter;
+        for (int i = 0; i < filters.length; i++) {
+            newFilters[i + 1] = filters[i];
+        }
+        return new CombinedFilter(newFilters);
+    }
+
+    @Override
+    public LogFilter andThen(LogFilter filter) {
+        if (Objects.equals(filter, LogFilter.allPass())) return this;
+        if (Objects.equals(filter, LogFilter.nonePass())) return filter;
+
+        LogFilter[] newFilters = new LogFilter[filters.length + 1];
+        for (int i = 0; i < filters.length; i++) {
+            newFilters[i] = filters[i];
+        }
+        newFilters[newFilters.length - 1] = filter;
+        return new CombinedFilter(newFilters);
     }
 }

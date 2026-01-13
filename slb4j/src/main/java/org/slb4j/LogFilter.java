@@ -46,20 +46,45 @@ public interface LogFilter {
 
     /**
      * Combines multiple {@code LogFilter} instances into a single filter.
-     * If no filters are specified, a filter that allows all log entries to pass is returned.
-     * If a single filter is specified, that filter is returned as is.
-     * If multiple filters are provided, a {@code CombinedFilter} is created that allows log entries
-     * to pass only if all the constituent filters allow them.
      *
      * @param filters the array of {@code LogFilter} instances to be combined; can be empty or null
      * @return a new {@code LogFilter} instance that represents the combined behavior of the provided filters
      */
     static LogFilter combine(LogFilter... filters) {
-        return switch (filters.length) {
-            case 0 -> LogFilterConstants.ALL_PASS_FILTER;
-            case 1 -> filters[0];
-            default -> new CombinedFilter(filters);
-        };
+        LogFilter filter = allPass();
+        for (LogFilter next: filters) {
+            filter = filter.andThen(next);
+        }
+        return filter;
+    }
+
+    /**
+     * Returns a new {@code LogFilter} that applies the provided filter first,
+     * and then applies this filter to the result.
+     *
+     * @param filter the {@code LogFilter} to be applied before this filter; must not be null
+     * @return a {@code LogFilter} representing the composition of the provided filter and this filter
+     */
+    default LogFilter firstApply(LogFilter filter) {
+        return filter.andThen(this);
+    }
+
+    /**
+     * Returns a new {@code LogFilter} that represents the composition of this filter and another filter.
+     * The resulting filter applies the current filter first, and then applies the specified filter to the
+     * result. If the specified filter is {@code LogFilterConstants.ALL_PASS_FILTER}, this filter is returned
+     * as is. If the specified filter is {@code LogFilterConstants.NONE_PASS_FILTER}, the specified filter
+     * is returned as is.
+     *
+     * @param other the {@code LogFilter} to be applied after this filter; must not be null
+     * @return a {@code LogFilter} representing the composition of this filter and the specified filter
+     */
+    default LogFilter andThen(LogFilter other) {
+        if (other.equals(LogFilterConstants.ALL_PASS_FILTER)) return this;
+        if (other.equals(LogFilterConstants.NONE_PASS_FILTER)) return other;
+        if (other instanceof CombinedFilter cf) return cf.firstApply(this);
+
+        return new CombinedFilter(this, other);
     }
 
     /**
@@ -81,7 +106,7 @@ public interface LogFilter {
      * @param t          the throwable associated with the log entry, can be {@code null}
      * @return {@code true}, if the log entry should be processed, {@code false} if it should be filtered out
      */
-    boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, Supplier<String> msg, @Nullable Throwable t);
+    boolean test(Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, Supplier<@Nullable String> msg, @Nullable Throwable t);
 
     /**
      * Determines if logging is enabled for a specific name, log level, and optional marker.
@@ -141,6 +166,11 @@ final class LogFilterConstants {
         public boolean isEnabled(String loggerName, LogLevel logLevel, @Nullable String marker) {
             return true;
         }
+
+        @Override
+        public LogFilter andThen(LogFilter other) {
+            return other;
+        }
     };
 
     /**
@@ -172,6 +202,11 @@ final class LogFilterConstants {
         @Override
         public boolean isMarkerEnabled(@Nullable String marker) {
             return false;
+        }
+
+        @Override
+        public LogFilter andThen(LogFilter other) {
+            return this;
         }
     };
 }

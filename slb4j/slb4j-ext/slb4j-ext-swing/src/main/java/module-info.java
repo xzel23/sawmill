@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-rootProject.name = "sawmill"
 
-include("slb4j")
-include("slb4j:benchmark")
-include("slb4j:samples:jul")
-include("slb4j:samples:jcl")
-include("slb4j:samples:log4j")
-include("slb4j:samples:slf4j")
-include("slb4j:samples:all")
-include("slb4j:slb4j-ext")
-include("slb4j:slb4j-ext:slb4j-ext-fx")
-include("slb4j:slb4j-ext:slb4j-ext-fx:samples")
-include("slb4j:slb4j-ext:slb4j-ext-swing")
-include("slb4j:slb4j-ext:slb4j-ext-swing:samples")
+import org.jspecify.annotations.NullMarked;
+
+/**
+ * Module-info for the SLB4J Swing log viewer.
+ */
+@NullMarked
+module org.slb4j.ext.swing {
+    exports com.dua3.sawmill.carpenter.swing;
+
+    requires org.slb4j;
+    requires org.slb4j.ext;
+    requires org.jspecify;
+}

@@ -27,10 +27,6 @@ dependencies {
 
     api(project(":slb4j"))
     implementation(project(":slb4j:slb4j-ext"))
-
-    api(platform(libs.utility.bom))
-    implementation(libs.utility)
-    implementation(libs.utility.fx)
 }
 
 tasks.test {

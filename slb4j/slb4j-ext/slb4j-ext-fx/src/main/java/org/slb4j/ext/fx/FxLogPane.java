@@ -1,6 +1,5 @@
 package org.slb4j.ext.fx;
 
-import com.dua3.utility.fx.PlatformHelper;
 import org.slb4j.ConsoleCode;
 import org.slb4j.LogFilter;
 import org.slb4j.LogLevel;
@@ -8,8 +7,6 @@ import org.slb4j.LogPattern;
 import org.slb4j.SLB4J;
 import org.slb4j.ext.LogBuffer;
 import org.slb4j.ext.LogEntry;
-import com.dua3.utility.application.ApplicationUtil;
-import com.dua3.utility.lang.LangUtil;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -93,9 +90,6 @@ public class FxLogPane extends BorderPane {
 
     private final AtomicReference<@Nullable LogEntry> selectedItem = new AtomicReference<>();
 
-    private final String darkCss;
-    private final String lightCss;
-
     private boolean autoScroll = true;
 
     private <T> TableColumn<LogEntry, T> createColumn(String name, Function<? super LogEntry, ? extends @Nullable T> getter, boolean fixedWidth, String... sampleTexts) {
@@ -161,8 +155,6 @@ public class FxLogPane extends BorderPane {
         FilteredList<LogEntry> entries = new FilteredList<>(new LogEntriesObservableList(logBuffer), p -> true);
 
         this.logBuffer = logBuffer;
-        this.darkCss = LangUtil.getResourceURL(getClass(), "dark.css").toExternalForm();
-        this.lightCss = LangUtil.getResourceURL(getClass(), "light.css").toExternalForm();
         ToolBar toolBar = new ToolBar();
         this.tableView = new TableView<>(entries);
         this.details = new TextArea();
@@ -179,10 +171,6 @@ public class FxLogPane extends BorderPane {
                 }
             }
         });
-
-        // install default stylesheet
-        setDarkMode(ApplicationUtil.isDarkMode());
-        ApplicationUtil.addDarkModeListener(this::setDarkMode);
 
         entries.addListener(this::onEntries);
 
@@ -328,15 +316,6 @@ public class FxLogPane extends BorderPane {
     }
 
     /**
-     * Set dark mode stylesheet for this pane.
-     * @param dark true to use dark.css, false to use light.css
-     */
-    public void setDarkMode(boolean dark) {
-        getStylesheets().setAll(dark ? darkCss : lightCss);
-    }
-
-
-    /**
      * Searches within the provided list of log entries for a log entry containing the specified text.
      * The search direction is determined by the `up` parameter and wraps around the list if necessary.
      *
@@ -379,7 +358,6 @@ public class FxLogPane extends BorderPane {
             filter = filter.andThen(new LoggerNameFilter("loggerName",  name -> name.toLowerCase(Locale.ROOT).contains(loggerText)));
         }
 
-        BiPredicate<String, LogLevel> predicateContent;
         String messageContent = tfMessageContent.getText();
         if (!messageContent.isEmpty()) {
             filter = filter.andThen(new MessageTextFilter("messageContent", text -> text.contains(messageContent)));
@@ -396,9 +374,15 @@ public class FxLogPane extends BorderPane {
      * @param logEntry the {@link LogEntry} to select and scroll to
      */
     private void selectLogEntry(LogEntry logEntry) {
-        PlatformHelper.checkApplicationThread();
+        checkApplicationThread();
         tableView.getSelectionModel().select(logEntry);
         tableView.scrollTo(logEntry);
+    }
+
+    private void checkApplicationThread() {
+        if (!Platform.isFxApplicationThread()) {
+            throw new IllegalStateException("not on FX Application Thread");
+        }
     }
 
     /**
@@ -408,7 +392,7 @@ public class FxLogPane extends BorderPane {
      * @param evt the {@link ScrollEvent} representing the scroll action
      */
     private void onScrollEvent(ScrollEvent evt) {
-        PlatformHelper.checkApplicationThread();
+        checkApplicationThread();
         if (autoScroll) {
             // disable autoscroll when manually scrolling
             autoScroll = false;
@@ -428,18 +412,18 @@ public class FxLogPane extends BorderPane {
     }
 
     private boolean isSelectionEmpty() {
-        PlatformHelper.checkApplicationThread();
+        checkApplicationThread();
         return selectedItem == null;
     }
 
     private void clearSelection() {
-        PlatformHelper.checkApplicationThread();
+        checkApplicationThread();
         tableView.getSelectionModel().clearSelection();
         selectedItem.set(null);
     }
 
     private void onEntries(ListChangeListener.Change<? extends LogEntry> change) {
-        PlatformHelper.checkApplicationThread();
+        checkApplicationThread();
         if (autoScroll) {
             // scroll to bottom
             Platform.runLater(() -> {
@@ -454,7 +438,7 @@ public class FxLogPane extends BorderPane {
     }
 
     private boolean isScrolledToBottom() {
-        PlatformHelper.checkApplicationThread();
+        checkApplicationThread();
         return getScrollBar(Orientation.VERTICAL).map(sb -> {
                     double max = sb.getMax();
                     double current = sb.getValue();

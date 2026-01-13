@@ -26,8 +26,6 @@ module org.slb4j.ext.fx {
     requires org.slb4j;
     requires org.slb4j.ext;
     requires org.jspecify;
-    requires com.dua3.utility;
-    requires com.dua3.utility.fx;
     requires javafx.base;
     requires javafx.controls;
     requires javafx.graphics;

@@ -114,7 +114,6 @@ public class FxLogPane extends BorderPane {
 
     private final LogBuffer logBuffer;
     private boolean dark = false;
-    private final Texts texts;
     private final LogPattern pattern = LogPattern.parse(LogPattern.DEFAULT_PATTERN);
     private final TextArea details;
     private final TableView<@Nullable LogEntry> tableView;
@@ -210,7 +209,6 @@ public class FxLogPane extends BorderPane {
         this.logBuffer = logBuffer;
         this.darkCss = getResourceURL(getClass(), "dark.css").toExternalForm();
         this.lightCss = getResourceURL(getClass(), "light.css").toExternalForm();
-        this.texts = texts;
         ToolBar toolBar = new ToolBar();
         this.tableView = new TableView<>(entries);
         this.details = new TextArea();

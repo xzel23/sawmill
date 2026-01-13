@@ -150,6 +150,7 @@ public class FxLogPane extends BorderPane {
         TableColumn<LogEntry, T> column = new TableColumn<>(name);
         column.setCellValueFactory(entry -> new SimpleObjectProperty<>(getter.apply(entry.getValue())));
         if (sampleTexts.length == 0) {
+            column.setPrefWidth(COLUMN_WIDTH_LARGE);
             column.setMaxWidth(COLUMN_WIDTH_MAX);
         } else {
             double w = 24 + Stream.of(sampleTexts).mapToDouble(FxLogPane::getDisplayWidth).max().orElse(200);
@@ -157,7 +158,9 @@ public class FxLogPane extends BorderPane {
                 column.setMinWidth(w);
                 column.setMaxWidth(w);
             } else {
+                column.setMinWidth(w);
                 column.setPrefWidth(w);
+                column.setMaxWidth(COLUMN_WIDTH_MAX);
             }
         }
         column.setCellFactory(col -> new TableCell<LogEntry, @Nullable T>() {

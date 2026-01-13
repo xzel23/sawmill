@@ -37,6 +37,8 @@ public final class LogPattern {
     private static final String NEWLINE = System.lineSeparator();
     private static final ZoneId ZONE_ID = ZoneId.systemDefault();
 
+    private static final Pattern PATTERN = Pattern.compile("%(-?\\d*)(\\.\\d+)?([a-zA-Z]+)(\\{([^}]+)})?|%%");
+
     /**
      * The default pattern used for log formatting.
      * <p>
@@ -48,14 +50,32 @@ public final class LogPattern {
      * 2026-01-11 15:19:09.573 INFO  com.example.Application - Message from SLF4J
      * </pre>
      */
-    public static final String DEFAULT_PATTERN = "%Cstart%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger - %msg%Cend%n";
+    public static final LogPattern DEFAULT_PATTERN = parse("%Cstart%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger - %msg%Cend%n");
+
+    /**
+     * A compact log pattern used to format log entries in a concise and structured manner.
+     * The pattern defines the format of log messages by specifying placeholders, alignment,
+     * truncation, and other layout options.
+     * <p>
+     * Pattern description:
+     * <ul>
+     * <li>`%Cstart` and `%Cend`: Markers for console color codes (if supported by the logging system).
+     * <li>`%d{HH:mm:ss.SSS}`: The timestamp of the log entry without the date.
+     * <li>`%-5level`: The log level, left-aligned with a width of 5 characters.
+     * <li>`%-30.30c{1.}`: The logger name, left-aligned and truncated to a maximum of 30 characters, showing only the first fragment of the name.
+     * <li>`%msg`: The log message.
+     * <li>`%n`: A new line character.
+     * </ul>
+     * Use when a compact and human-readable log format is preferred, such as console-based logging.
+     */
+    public static final LogPattern COMPACT_PATTERN = parse("%Cstart%d{HH:mm:ss.SSS} %-5level %-30.30c{1.} - %msg%Cend%n");
 
     /**
      * Defines an interface for formatting log entries in a customizable and extensible manner.
      * Implementations of this interface allow specific components of a log entry to be
      * processed and appended to a {@link Appendable} in a format defined by the implementing class.
      */
-    private interface LogPatternEntry {
+    public interface LogPatternEntry {
         void format(Appendable app, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<@Nullable String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) throws IOException;
 
         String getLog4jPattern();
@@ -72,7 +92,7 @@ public final class LogPattern {
      * <p>
      * Subclasses must define the specific formatting behavior for different log components.
      */
-    private abstract static class AbstractLogPatternEntry implements LogPatternEntry {
+    public abstract static class AbstractLogPatternEntry implements LogPatternEntry {
         protected final String prefix;
         protected final int minWidth;
         protected final int maxWidth;
@@ -97,7 +117,7 @@ public final class LogPattern {
          *                  to the left.
          * @param needsLocation A flag indicating whether this entry requires location information.
          */
-        protected AbstractLogPatternEntry(String prefix, int minWidth, int maxWidth, boolean leftAlign, boolean needsLocation) {
+        public AbstractLogPatternEntry(String prefix, int minWidth, int maxWidth, boolean leftAlign, boolean needsLocation) {
             this.prefix = prefix;
             this.minWidth = minWidth;
             this.maxWidth = maxWidth;
@@ -107,6 +127,11 @@ public final class LogPattern {
 
         private static final int N_SPACES = 20;
         private static final String SPACES = " ".repeat(N_SPACES);
+
+        @Override
+        public String toString() {
+            return getLog4jPattern();
+        }
 
         @Override
         public boolean isLocationNeeded() {
@@ -201,7 +226,7 @@ public final class LogPattern {
     /**
      * Represents a literal string entry in a log format.
      */
-    private static class LiteralEntry implements LogPatternEntry {
+    public static class LiteralEntry implements LogPatternEntry {
         private final String literal;
 
         /**
@@ -210,8 +235,13 @@ public final class LogPattern {
          * @param literal the fixed string that this entry represents;
          *                it will be appended during log formatting.
          */
-        LiteralEntry(String literal) {
+        public LiteralEntry(String literal) {
             this.literal = literal;
+        }
+
+        @Override
+        public String toString() {
+            return getLog4jPattern();
         }
 
         @Override
@@ -232,8 +262,8 @@ public final class LogPattern {
      * and applying formatting options such as alignment and truncation based on the
      * parent class's configuration.
      */
-    private static class LevelEntry extends AbstractLogPatternEntry {
-        LevelEntry(int minWidth, int maxWidth, boolean leftAlign) {
+    public static class LevelEntry extends AbstractLogPatternEntry {
+        public LevelEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("p", minWidth, maxWidth, leftAlign, false);
         }
 
@@ -268,7 +298,7 @@ public final class LogPattern {
      * with formatting applied according to the specified minimum width, maximum width, and alignment
      * settings. If truncation is required, the logger name will be truncated from the left.
      */
-    private static class LoggerEntry extends AbstractLogPatternEntry {
+    public static class LoggerEntry extends AbstractLogPatternEntry {
         private final int abbreviationLength;
 
         /**
@@ -286,7 +316,7 @@ public final class LogPattern {
          *                  otherwise, padding will be added to the left.
          * @param abbreviationLength the number of rightmost components of the logger name to keep.
          */
-        LoggerEntry(int minWidth, int maxWidth, boolean leftAlign, int abbreviationLength) {
+        public LoggerEntry(int minWidth, int maxWidth, boolean leftAlign, int abbreviationLength) {
             super("c", minWidth, maxWidth, leftAlign, false);
             this.abbreviationLength = abbreviationLength;
         }
@@ -309,8 +339,8 @@ public final class LogPattern {
     /**
      * Represents a log format entry for the thread name.
      */
-    private static class ThreadEntry extends AbstractLogPatternEntry {
-        ThreadEntry(int minWidth, int maxWidth, boolean leftAlign) {
+    public static class ThreadEntry extends AbstractLogPatternEntry {
+        public ThreadEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("t", minWidth, maxWidth, leftAlign, false);
         }
 
@@ -323,10 +353,10 @@ public final class LogPattern {
     /**
      * Represents a log format entry for the MDC (Mapped Diagnostic Context).
      */
-    private static class MdcEntry extends AbstractLogPatternEntry {
+    public static class MdcEntry extends AbstractLogPatternEntry {
         private final @Nullable String key;
 
-        MdcEntry(int minWidth, int maxWidth, boolean leftAlign, @Nullable String key) {
+        public MdcEntry(int minWidth, int maxWidth, boolean leftAlign, @Nullable String key) {
             super("X", minWidth, maxWidth, leftAlign, false);
             this.key = key;
         }
@@ -364,7 +394,7 @@ public final class LogPattern {
      * Represents a log format entry that formats and appends a marker value to a log output.
      * A marker is a string that can be used in log messages to provide additional context or categorization.
      */
-    private static class MarkerEntry extends AbstractLogPatternEntry {
+    public static class MarkerEntry extends AbstractLogPatternEntry {
         /**
          * Constructs an instance of MarkerEntry with the specified formatting parameters.
          * A MarkerEntry formats and appends a marker value to the log output. A marker is
@@ -380,7 +410,7 @@ public final class LogPattern {
          *                  If true, padding will be added to the right of the marker output;
          *                  otherwise, padding will be added to the left.
          */
-        MarkerEntry(int minWidth, int maxWidth, boolean leftAlign) {
+        public MarkerEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("marker", minWidth, maxWidth, leftAlign, false);
         }
 
@@ -396,7 +426,7 @@ public final class LogPattern {
      * log message text according to the provided parameters for minimum width, maximum width,
      * and alignment.
      */
-    private static class MessageEntry extends AbstractLogPatternEntry {
+    public static class MessageEntry extends AbstractLogPatternEntry {
         /**
          * Constructs a new instance of MessageEntry with the specified formatting parameters.
          *
@@ -408,7 +438,7 @@ public final class LogPattern {
          *                  to true, padding is added to the right of the output; otherwise, it is
          *                  added to the left.
          */
-        MessageEntry(int minWidth, int maxWidth, boolean leftAlign) {
+        public MessageEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("m", minWidth, maxWidth, leftAlign, false);
         }
 
@@ -418,10 +448,10 @@ public final class LogPattern {
         }
     }
 
-    private static class ClassEntry extends AbstractLogPatternEntry {
+    public static class ClassEntry extends AbstractLogPatternEntry {
         private final int abbreviationLength;
 
-        ClassEntry(int minWidth, int maxWidth, boolean leftAlign, int abbreviationLength) {
+        public ClassEntry(int minWidth, int maxWidth, boolean leftAlign, int abbreviationLength) {
             super("C", minWidth, maxWidth, leftAlign, true);
             this.abbreviationLength = abbreviationLength;
         }
@@ -442,8 +472,8 @@ public final class LogPattern {
         }
     }
 
-    private static class MethodEntry extends AbstractLogPatternEntry {
-        MethodEntry(int minWidth, int maxWidth, boolean leftAlign) {
+    public static class MethodEntry extends AbstractLogPatternEntry {
+        public MethodEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("M", minWidth, maxWidth, leftAlign, true);
         }
 
@@ -453,8 +483,8 @@ public final class LogPattern {
         }
     }
 
-    private static class LineEntry extends AbstractLogPatternEntry {
-        LineEntry(int minWidth, int maxWidth, boolean leftAlign) {
+    public static class LineEntry extends AbstractLogPatternEntry {
+        public LineEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("L", minWidth, maxWidth, leftAlign, true);
         }
 
@@ -464,8 +494,8 @@ public final class LogPattern {
         }
     }
 
-    private static class FileEntry extends AbstractLogPatternEntry {
-        FileEntry(int minWidth, int maxWidth, boolean leftAlign) {
+    public static class FileEntry extends AbstractLogPatternEntry {
+        public FileEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("F", minWidth, maxWidth, leftAlign, true);
         }
 
@@ -480,7 +510,7 @@ public final class LogPattern {
      * <p>
      * This class formats the location string according to specified width and alignment constraints.
      */
-    private static class LocationEntry extends AbstractLogPatternEntry {
+    public static class LocationEntry extends AbstractLogPatternEntry {
         /**
          * Constructs an instance of the LocationEntry class. This constructor initializes
          * a log format entry responsible for formatting and displaying the location
@@ -496,7 +526,7 @@ public final class LogPattern {
          *                  left-aligned. If true, padding will be added to the right of the
          *                  formatted output; otherwise, padding will be added to the left.
          */
-        LocationEntry(int minWidth, int maxWidth, boolean leftAlign) {
+        public LocationEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("l", minWidth, maxWidth, leftAlign, true);
         }
 
@@ -515,7 +545,7 @@ public final class LogPattern {
      * for handling and formatting exception-related log entries. It formats the exception information
      * into the log output, including the exception type and message.
      */
-    private static class ExceptionEntry extends AbstractLogPatternEntry {
+    public static class ExceptionEntry extends AbstractLogPatternEntry {
         /**
          * Constructs an instance of ExceptionEntry, a specialized log format entry
          * that handles the formatting of exceptions in a logging framework. This
@@ -532,7 +562,7 @@ public final class LogPattern {
          *                  right of the output; otherwise, padding will be applied
          *                  to the left.
          */
-        ExceptionEntry(int minWidth, int maxWidth, boolean leftAlign) {
+        public ExceptionEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("ex", minWidth, maxWidth, leftAlign, false);
         }
 
@@ -550,7 +580,7 @@ public final class LogPattern {
      * The color code to be inserted is specified via a pair of color codes passed as a parameter
      * during formatting.
      */
-    private static class ColorStartEntry extends AbstractLogPatternEntry {
+    public static class ColorStartEntry extends AbstractLogPatternEntry {
         /**
          * Constructs an instance of ColorStartEntry with the specified formatting parameters.
          *
@@ -565,7 +595,7 @@ public final class LogPattern {
          *                  of the formatted output; otherwise, padding will be added
          *                  to the left.
          */
-        ColorStartEntry(int minWidth, int maxWidth, boolean leftAlign) {
+        public ColorStartEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("Cstart", minWidth, maxWidth, leftAlign, false);
         }
 
@@ -579,7 +609,7 @@ public final class LogPattern {
      * Represents a specific type of log format entry designed to insert an ending
      * color code into a log message.
      */
-    private static class ColorEndEntry extends AbstractLogPatternEntry {
+    public static class ColorEndEntry extends AbstractLogPatternEntry {
         /**
          * Constructs a ColorEndEntry instance used for formatting log entries with
          * specific width constraints and alignment settings.
@@ -595,7 +625,7 @@ public final class LogPattern {
          *                  of the formatted output; otherwise, padding will be added
          *                  to the left.
          */
-        ColorEndEntry(int minWidth, int maxWidth, boolean leftAlign) {
+        public ColorEndEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("Cend", minWidth, maxWidth, leftAlign, false);
         }
 
@@ -610,7 +640,7 @@ public final class LogPattern {
      * This class implements the {@code LogPatternEntry} interface and provides functionality
      * to format a log entry's timestamp according to various date-time patterns.
      */
-    private static class DateEntry implements LogPatternEntry {
+    public static class DateEntry implements LogPatternEntry {
         private final String datePattern;
         private final DateTimeFormatter formatter;
 
@@ -622,7 +652,7 @@ public final class LogPattern {
          *                "yyyy-MM-dd HH:mm:ss,SSS", "yyyy-MM-dd HH:mm:ss", or a custom pattern.
          *                If the pattern is empty, "HH:mm:ss" will be used as the default.
          */
-        DateEntry(String pattern) {
+        public DateEntry(String pattern) {
             this.datePattern = pattern;
             this.formatter = switch (pattern) {
                 case "ISO8601" -> DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssSSSZ");
@@ -631,6 +661,11 @@ public final class LogPattern {
                 case "yyyy-MM-dd HH:mm:ss" -> DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 default -> DateTimeFormatter.ofPattern(pattern.isEmpty() ? "HH:mm:ss" : pattern);
             };
+        }
+
+        @Override
+        public String toString() {
+            return getLog4jPattern();
         }
 
         @Override
@@ -647,7 +682,12 @@ public final class LogPattern {
     /**
      * Represents a log format entry that inserts a newline character into the log output.
      */
-    private static class NewlineEntry implements LogPatternEntry {
+    public static class NewlineEntry implements LogPatternEntry {
+        @Override
+        public String toString() {
+            return getLog4jPattern();
+        }
+
         @Override
         public void format(Appendable app, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<@Nullable String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) throws IOException {
             app.append(NEWLINE);
@@ -659,7 +699,12 @@ public final class LogPattern {
         }
     }
 
-    private volatile List<LogPatternEntry> entries;
+    @Override
+    public String toString() {
+        return getPattern();
+    }
+
+    private final List<LogPatternEntry> entries;
 
     /**
      * Parses a Log4J-style pattern string and creates a new {@code LogPattern} instance.
@@ -672,26 +717,11 @@ public final class LogPattern {
     }
 
     /**
-     * Constructs a LogPattern using the default pattern.
-     */
-    public LogPattern() {
-        this.entries = parseLog4jPatternString(DEFAULT_PATTERN);
-    }
-
-    /**
      * Constructs a LogPattern using the supplied pattern.
      *
      * @param pattern the format pattern in Log4J style, which may include placeholders and literals
      */
-    public LogPattern(String pattern) {
-        this.entries = parseLog4jPatternString(pattern);
-    }
-
-    /**
-     * Set the format pattern.
-     * @param pattern the format pattern in Log4J style
-     */
-    public void setPattern(String pattern) {
+    private LogPattern(String pattern) {
         this.entries = parseLog4jPatternString(pattern);
     }
 
@@ -741,8 +771,6 @@ public final class LogPattern {
             entry.format(app, instant, loggerName, lvl, mrk, mdc, location, msg, t, consoleCodes);
         }
     }
-
-    private static final Pattern PATTERN = Pattern.compile("%(-?\\d*)(\\.\\d+)?([a-zA-Z]+)(\\{([^}]+)})?|%%");
 
     /**
      * Parses a Log4J-style pattern string and converts it into a list of {@code LogPatternEntry} instances,

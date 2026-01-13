@@ -94,7 +94,7 @@ class LogPatternTest {
     void testPattern(String pattern, String expected) throws IOException {
         String threadName = Thread.currentThread().getName();
         String updatedExpected = expected.replace("main", threadName);
-        LogPattern fmt = new LogPattern(pattern);
+        LogPattern fmt = LogPattern.parse(pattern);
 
         Instant instant = LocalDateTime.of(2026, 1, 10, 14, 23, 41, 123_000_000)
                 .atZone(ZoneId.systemDefault())
@@ -132,7 +132,7 @@ class LogPatternTest {
     @Test
     void testPatternWithThrowable() throws IOException {
         String pattern = "%msg%n%ex";
-        LogPattern fmt = new LogPattern(pattern);
+        LogPattern fmt = LogPattern.parse(pattern);
 
         Instant instant = Instant.now();
         String loggerName = "test.Logger";

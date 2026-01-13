@@ -66,24 +66,23 @@ public final class ConsoleHandler implements LogHandler {
     private final PrintStream out;
     private volatile LogFilter filter = LogFilter.allPass();
     private volatile Map<LogLevel, ConsoleCode> colorMap = new EnumMap<>(LogLevel.class);
-    private final LogPattern logPattern = new LogPattern();
+    private volatile LogPattern logPattern = LogPattern.DEFAULT_PATTERN;
 
     /**
      * Set the format pattern.
      * @param pattern the format pattern
      */
-    public void setPattern(String pattern) {
-        logPattern.setPattern(pattern);
+    public void setPattern(LogPattern pattern) {
+        logPattern = pattern;
     }
 
     /**
      * Get the format pattern.
      * @return the format pattern
      */
-    public String getPattern() {
-        return logPattern.getPattern();
+    public LogPattern getPattern() {
+        return logPattern;
     }
-
 
     /**
      * Constructs a ConsoleHandler with the specified PrintStream and colored flag.

@@ -46,7 +46,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
     private final String name;
     private final Path path;
     private final boolean append;
-    private final LogPattern logPattern = new LogPattern();
+    private volatile LogPattern logPattern = LogPattern.DEFAULT_PATTERN;
     private volatile LogFilter filter = LogFilter.allPass();
 
     private @Nullable PrintStream out;
@@ -280,8 +280,8 @@ public class FileHandler implements LogHandler, AutoCloseable {
      * Sets the log pattern.
      * @param pattern the log pattern string
      */
-    public synchronized void setPattern(String pattern) {
-        logPattern.setPattern(pattern);
+    public synchronized void setPattern(LogPattern pattern) {
+        logPattern = pattern;
     }
 
     /**

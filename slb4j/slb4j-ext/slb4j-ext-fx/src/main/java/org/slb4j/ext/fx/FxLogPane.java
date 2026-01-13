@@ -135,7 +135,7 @@ public class FxLogPane extends BorderPane {
 
     private final LogBuffer logBuffer;
     private boolean dark = false;
-    private final LogPattern pattern = LogPattern.parse(LogPattern.DEFAULT_PATTERN);
+    private final LogPattern pattern = LogPattern.DEFAULT_PATTERN;
     private final TextArea details;
     private final TableView<@Nullable LogEntry> tableView;
 

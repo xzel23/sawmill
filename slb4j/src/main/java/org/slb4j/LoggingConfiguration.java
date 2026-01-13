@@ -323,10 +323,16 @@ public final class LoggingConfiguration {
 
         handleProperty(properties, prefix + "filter", filters::get, handler::setFilter, LogFilter::allPass);
         if (handler instanceof ConsoleHandler consoleHandler) {
-            handleProperty(properties, prefix + LOGGER_CONSOLE_PATTERN, s -> s, consoleHandler::setPattern, () -> LogPattern.DEFAULT_PATTERN);
+            handleProperty(properties, prefix + LOGGER_CONSOLE_PATTERN,
+                    LogPattern::parse, consoleHandler::setPattern,
+                    () -> LogPattern.DEFAULT_PATTERN
+            );
         }
         if (handler instanceof FileHandler fileHandler) {
-            handleProperty(properties, prefix + LOGGER_FILE_PATTERN, s -> s, fileHandler::setPattern, () -> LogPattern.DEFAULT_PATTERN);
+            handleProperty(properties, prefix + LOGGER_FILE_PATTERN,
+                    LogPattern::parse, fileHandler::setPattern,
+                    () -> LogPattern.DEFAULT_PATTERN
+            );
         }
 
         handlers.put(name, handler);
@@ -401,7 +407,7 @@ public final class LoggingConfiguration {
                 String sStream = stream == System.err ? SYSTEM_ERR : SYSTEM_OUT;
                 properties.setProperty(prefix + LOGGER_CONSOLE_STREAM, sStream);
                 properties.setProperty(prefix + LOGGER_CONSOLE_COLORED, String.valueOf(consoleHandler.isColored()));
-                properties.setProperty(prefix + LOGGER_CONSOLE_PATTERN, consoleHandler.getPattern());
+                properties.setProperty(prefix + LOGGER_CONSOLE_PATTERN, consoleHandler.getPattern().getPattern());
             } else if (handler instanceof FileHandler fileHandler) {
                 properties.setProperty(prefix + LOGGING_TYPE, "file");
                 properties.setProperty(prefix + LOGGER_FILE_PATH, fileHandler.getPath().toString());

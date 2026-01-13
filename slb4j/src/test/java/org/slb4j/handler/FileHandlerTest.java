@@ -3,6 +3,7 @@ package org.slb4j.handler;
 import org.slb4j.Location;
 import org.slb4j.LogLevel;
 import org.slb4j.LocationResolver;
+import org.slb4j.LogPattern;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -32,7 +33,7 @@ class FileHandlerTest {
     void testBasicLogging() throws IOException {
         Path logFile = tempDir.resolve("test.log");
         try (FileHandler handler = new FileHandler("test", logFile, false)) {
-            handler.setPattern("%msg%n");
+            handler.setPattern(LogPattern.parse("%msg%n"));
             handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Hello, World!", null);
             handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Second line", null);
         }
@@ -50,7 +51,7 @@ class FileHandlerTest {
         Files.writeString(logFile, "Initial content\n");
 
         try (FileHandler handler = new FileHandler("test", logFile, true)) {
-            handler.setPattern("%msg%n");
+            handler.setPattern(LogPattern.parse("%msg%n"));
             handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Second line", null);
         }
 
@@ -66,7 +67,7 @@ class FileHandlerTest {
         Files.writeString(logFile, "Initial content\n");
 
         try (FileHandler handler = new FileHandler("test", logFile, false)) {
-            handler.setPattern("%msg%n");
+            handler.setPattern(LogPattern.parse("%msg%n"));
             handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "New content", null);
         }
 
@@ -79,7 +80,7 @@ class FileHandlerTest {
     void testSizeRotation() throws IOException {
         Path logFile = tempDir.resolve("test-size.log");
         try (FileHandler handler = new FileHandler("test", logFile, false)) {
-            handler.setPattern("%msg%n");
+            handler.setPattern(LogPattern.parse("%msg%n"));
             handler.setMaxFileSize(10); // Very small size to trigger rotation quickly
             handler.setMaxBackupIndex(2);
 
@@ -110,7 +111,7 @@ class FileHandlerTest {
     void testEntryRotation() throws IOException {
         Path logFile = tempDir.resolve("test-entries.log");
         try (FileHandler handler = new FileHandler("test", logFile, false)) {
-            handler.setPattern("%msg%n");
+            handler.setPattern(LogPattern.parse("%msg%n"));
             handler.setMaxEntries(2);
             handler.setMaxBackupIndex(2);
 
@@ -132,7 +133,7 @@ class FileHandlerTest {
     void testTimeRotation() throws IOException, InterruptedException {
         Path logFile = tempDir.resolve("test-time.log");
         try (FileHandler handler = new FileHandler("test", logFile, false)) {
-            handler.setPattern("%msg%n");
+            handler.setPattern(LogPattern.parse("%msg%n"));
             // Use a very small time unit if possible, but ChronoUnit.SECONDS is the smallest truncatedTo supports usually
             handler.setRotationTimeUnit(ChronoUnit.SECONDS);
 
@@ -152,7 +153,7 @@ class FileHandlerTest {
     void testSizeRotationWithBuffering() throws IOException {
         Path logFile = tempDir.resolve("test-size-buffered.log");
         try (FileHandler handler = new FileHandler("test", logFile, false)) {
-            handler.setPattern("%msg"); // No newline to keep size predictable
+            handler.setPattern(LogPattern.parse("%msg")); // No newline to keep size predictable
             handler.setMaxFileSize(10); 
             handler.setMaxBackupIndex(2);
             handler.setFlushEveryNEntries(1); // Ensure flush happens for this test
@@ -183,7 +184,7 @@ class FileHandlerTest {
         
         // 1. Test flush on high level
         try (FileHandler handler = new FileHandler("test", logFile, false)) {
-            handler.setPattern("%msg");
+            handler.setPattern(LogPattern.parse("%msg"));
             handler.setFlushLevel(LogLevel.ERROR);
             handler.setFlushEveryNEntries(-1); // Disable entry-based flush
 
@@ -200,7 +201,7 @@ class FileHandlerTest {
         // 2. Test flush every N entries
         Files.delete(logFile);
         try (FileHandler handler = new FileHandler("test", logFile, false)) {
-            handler.setPattern("%msg");
+            handler.setPattern(LogPattern.parse("%msg"));
             handler.setFlushLevel(LogLevel.ERROR); // Only flush ERROR or higher
             handler.setFlushEveryNEntries(3);
 

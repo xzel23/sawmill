@@ -29,5 +29,4 @@ module org.slb4j.ext.fx {
     requires javafx.base;
     requires javafx.controls;
     requires javafx.graphics;
-    requires java.logging;
 }

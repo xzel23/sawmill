@@ -401,27 +401,33 @@ public final class LoggingConfiguration {
             LogHandler handler = entry.getValue();
             String prefix = LOGGING_HANDLER + "." + name + ".";
 
-            if (handler instanceof ConsoleHandler consoleHandler) {
-                properties.setProperty(prefix + LOGGING_TYPE, "console");
-                PrintStream stream = consoleHandler.getOut();
-                String sStream = stream == System.err ? SYSTEM_ERR : SYSTEM_OUT;
-                properties.setProperty(prefix + LOGGER_CONSOLE_STREAM, sStream);
-                properties.setProperty(prefix + LOGGER_CONSOLE_COLORED, String.valueOf(consoleHandler.isColored()));
-                properties.setProperty(prefix + LOGGER_CONSOLE_PATTERN, consoleHandler.getPattern().getPattern());
-            } else if (handler instanceof FileHandler fileHandler) {
-                properties.setProperty(prefix + LOGGING_TYPE, "file");
-                properties.setProperty(prefix + LOGGER_FILE_PATH, fileHandler.getPath().toString());
-                properties.setProperty(prefix + LOGGER_FILE_APPEND, String.valueOf(fileHandler.isAppend()));
-                properties.setProperty(prefix + LOGGER_FILE_MAX_SIZE, String.valueOf(fileHandler.getMaxFileSize()));
-                properties.setProperty(prefix + LOGGER_FILE_MAX_ENTRIES, String.valueOf(fileHandler.getMaxEntries()));
-                ChronoUnit rotationUnit = fileHandler.getRotationTimeUnit();
-                if (rotationUnit != null) {
-                    properties.setProperty(prefix + LOGGER_FILE_ROTATION_UNIT, rotationUnit.name());
+            switch (handler) {
+                case ConsoleHandler consoleHandler -> {
+                    properties.setProperty(prefix + LOGGING_TYPE, "console");
+                    PrintStream stream = consoleHandler.getOut();
+                    String sStream = stream == System.err ? SYSTEM_ERR : SYSTEM_OUT;
+                    properties.setProperty(prefix + LOGGER_CONSOLE_STREAM, sStream);
+                    properties.setProperty(prefix + LOGGER_CONSOLE_COLORED, String.valueOf(consoleHandler.isColored()));
+                    properties.setProperty(prefix + LOGGER_CONSOLE_PATTERN, consoleHandler.getPattern().getPattern());
                 }
-                properties.setProperty(prefix + LOGGER_FILE_MAX_BACKUPS, String.valueOf(fileHandler.getMaxBackupIndex()));
-                properties.setProperty(prefix + LOGGER_FILE_FLUSH_LEVEL, fileHandler.getFlushLevel().name());
-                properties.setProperty(prefix + LOGGER_FILE_FLUSH_ENTRIES, String.valueOf(fileHandler.getFlushEveryNEntries()));
-                properties.setProperty(prefix + LOGGER_FILE_PATTERN, fileHandler.getPattern());
+                case FileHandler fileHandler -> {
+                    properties.setProperty(prefix + LOGGING_TYPE, "file");
+                    properties.setProperty(prefix + LOGGER_FILE_PATH, fileHandler.getPath().toString());
+                    properties.setProperty(prefix + LOGGER_FILE_APPEND, String.valueOf(fileHandler.isAppend()));
+                    properties.setProperty(prefix + LOGGER_FILE_MAX_SIZE, String.valueOf(fileHandler.getMaxFileSize()));
+                    properties.setProperty(prefix + LOGGER_FILE_MAX_ENTRIES, String.valueOf(fileHandler.getMaxEntries()));
+                    ChronoUnit rotationUnit = fileHandler.getRotationTimeUnit();
+                    if (rotationUnit != null) {
+                        properties.setProperty(prefix + LOGGER_FILE_ROTATION_UNIT, rotationUnit.name());
+                    }
+                    properties.setProperty(prefix + LOGGER_FILE_MAX_BACKUPS, String.valueOf(fileHandler.getMaxBackupIndex()));
+                    properties.setProperty(prefix + LOGGER_FILE_FLUSH_LEVEL, fileHandler.getFlushLevel().name());
+                    properties.setProperty(prefix + LOGGER_FILE_FLUSH_ENTRIES, String.valueOf(fileHandler.getFlushEveryNEntries()));
+                    properties.setProperty(prefix + LOGGER_FILE_PATTERN, fileHandler.getPattern());
+                }
+                default -> {
+                    // do nothing
+                }
             }
         }
     }

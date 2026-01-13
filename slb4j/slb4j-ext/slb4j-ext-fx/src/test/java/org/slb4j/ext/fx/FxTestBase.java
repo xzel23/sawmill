@@ -112,12 +112,10 @@ public abstract class FxTestBase {
         assertTrue(latch.await(20, TimeUnit.SECONDS), "JavaFX operation timed out");
         Throwable throwable = exception.get();
         if (throwable != null) {
-            if (throwable instanceof RuntimeException re) {
-                throw re;
-            } else if (throwable instanceof Error e) {
-                throw e;
-            } else {
-                throw new RuntimeException(throwable);
+            switch (throwable) {
+                case RuntimeException re -> throw re;
+                case Error e -> throw e;
+                default -> throw new RuntimeException(throwable);
             }
         }
     }

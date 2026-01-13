@@ -62,7 +62,7 @@ public final class Util {
         }
     }
 
-    private static void appendStackTraceEnclosed(Appendable app, Throwable t, StackTraceElement[] enclosingTrace, String caption, String indent) throws IOException {
+    private static void appendStackTraceEnclosed(Appendable app, Throwable t, StackTraceElement[] enclosingTrace, CharSequence caption, CharSequence indent) throws IOException {
         StackTraceElement[] trace = t.getStackTrace();
         int m = trace.length - 1;
         int n = enclosingTrace.length - 1;

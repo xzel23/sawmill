@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import java.security.SecureRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -41,7 +42,7 @@ public class SwingLogPaneSample {
         logPane = new SwingLogPane(LOG_BUFFER_SIZE);
 
         JFrame frame = new JFrame(getClass().getSimpleName());
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setContentPane(logPane);
 
         // JComponents need to be focusable to receive key events

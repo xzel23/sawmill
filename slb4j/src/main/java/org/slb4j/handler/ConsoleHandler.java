@@ -70,10 +70,10 @@ public final class ConsoleHandler implements LogHandler {
 
     /**
      * Set the format pattern.
-     * @param pattern the format pattern
+     * @param logPattern the format pattern
      */
-    public void setPattern(LogPattern pattern) {
-        logPattern = pattern;
+    public void setPattern(LogPattern logPattern) {
+        this.logPattern = logPattern;
     }
 
     /**

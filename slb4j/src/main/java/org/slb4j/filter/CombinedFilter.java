@@ -106,15 +106,15 @@ public final class CombinedFilter implements LogFilter {
     }
 
     @Override
-    public LogFilter andThen(LogFilter filter) {
-        if (Objects.equals(filter, LogFilter.allPass())) return this;
-        if (Objects.equals(filter, LogFilter.nonePass())) return filter;
+    public LogFilter andThen(LogFilter other) {
+        if (Objects.equals(other, LogFilter.allPass())) return this;
+        if (Objects.equals(other, LogFilter.nonePass())) return other;
 
         LogFilter[] newFilters = new LogFilter[filters.length + 1];
         for (int i = 0; i < filters.length; i++) {
             newFilters[i] = filters[i];
         }
-        newFilters[newFilters.length - 1] = filter;
+        newFilters[newFilters.length - 1] = other;
         return new CombinedFilter(newFilters);
     }
 }

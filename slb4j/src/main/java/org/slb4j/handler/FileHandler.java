@@ -278,10 +278,10 @@ public class FileHandler implements LogHandler, AutoCloseable {
 
     /**
      * Sets the log pattern.
-     * @param pattern the log pattern string
+     * @param logPattern the log pattern string
      */
-    public synchronized void setPattern(LogPattern pattern) {
-        logPattern = pattern;
+    public synchronized void setPattern(LogPattern logPattern) {
+        this.logPattern = logPattern;
     }
 
     /**

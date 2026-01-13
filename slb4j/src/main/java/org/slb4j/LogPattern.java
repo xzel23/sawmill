@@ -76,10 +76,40 @@ public final class LogPattern {
      * processed and appended to a {@link Appendable} in a format defined by the implementing class.
      */
     public interface LogPatternEntry {
+        /**
+         * Formats a log entry by appending its components to the given {@link Appendable} instance.
+         * This method is responsible for processing and serializing the provided log data into a custom
+         * format defined by the implementing class of the interface.
+         *
+         * @param app the {@link Appendable} instance to which the formatted log entry will be appended
+         * @param instant the {@link Instant} representing the timestamp of the log event
+         * @param loggerName the name of the logger that generated the log event
+         * @param lvl the {@link LogLevel} representing the severity level of the log event
+         * @param mrk an optional marker for the log entry, or null if not provided
+         * @param mdc an optional {@link MDC} containing diagnostic context data, or null if not provided
+         * @param location an optional {@link Location} detailing the source of the log event, or null if unknown
+         * @param msg a {@link Supplier} providing the log message, or null if not available
+         * @param t an optional {@link Throwable} associated with the log event, or null if no exception occurred
+         * @param consoleCodes an optional {@link ConsoleCode} defining console-specific format codes, or null if not used
+         * @throws IOException if an I/O error occurs while appending to the {@link Appendable} instance
+         */
         void format(Appendable app, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, @Nullable Location location, Supplier<@Nullable String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) throws IOException;
 
+        /**
+         * Retrieves the Log4j-compatible pattern string used for formatting log entries.
+         * The pattern defines how various components of a log entry, such as the timestamp,
+         * log level, logger name, and message, are represented in the output.
+         *
+         * @return a string representing the Log4j-compatible pattern for formatting log entries.
+         */
         String getLog4jPattern();
 
+        /**
+         * Determines whether the location information (e.g., source file, line number)
+         * is required for logging.
+         *
+         * @return a boolean value indicating whether location information is needed.
+         */
         default boolean isLocationNeeded() {
             return false;
         }
@@ -97,7 +127,7 @@ public final class LogPattern {
         protected final int minWidth;
         protected final int maxWidth;
         protected final boolean leftAlign;
-        private final boolean needsLocation;
+        private final boolean locationNeeded;
 
         /**
          * Constructs an instance of the AbstractLogPatternEntry with the specified
@@ -115,14 +145,14 @@ public final class LogPattern {
          *                  left-aligned. If true, padding will be added to the right
          *                  of the formatted output; otherwise, padding will be added
          *                  to the left.
-         * @param needsLocation A flag indicating whether this entry requires location information.
+         * @param locationNeeded A flag indicating whether this entry requires location information.
          */
-        public AbstractLogPatternEntry(String prefix, int minWidth, int maxWidth, boolean leftAlign, boolean needsLocation) {
+        protected AbstractLogPatternEntry(String prefix, int minWidth, int maxWidth, boolean leftAlign, boolean locationNeeded) {
             this.prefix = prefix;
             this.minWidth = minWidth;
             this.maxWidth = maxWidth;
             this.leftAlign = leftAlign;
-            this.needsLocation = needsLocation;
+            this.locationNeeded = locationNeeded;
         }
 
         private static final int N_SPACES = 20;
@@ -135,7 +165,7 @@ public final class LogPattern {
 
         @Override
         public boolean isLocationNeeded() {
-            return needsLocation;
+            return locationNeeded;
         }
 
         /**
@@ -263,6 +293,17 @@ public final class LogPattern {
      * parent class's configuration.
      */
     public static class LevelEntry extends AbstractLogPatternEntry {
+        /**
+         * Constructs a LevelEntry instance with the specified formatting configuration.
+         *
+         * @param minWidth The minimum width of the formatted log level string. If the formatted
+         *                 output is shorter than this width, padding will be added.
+         * @param maxWidth The maximum width of the formatted log level string. If the formatted
+         *                 output is longer than this width, it will be truncated.
+         * @param leftAlign A flag indicating whether the log level string should be left-aligned.
+         *                  If true, padding will be added to the right of the string; otherwise,
+         *                  padding will be added to the left.
+         */
         public LevelEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("p", minWidth, maxWidth, leftAlign, false);
         }
@@ -340,6 +381,19 @@ public final class LogPattern {
      * Represents a log format entry for the thread name.
      */
     public static class ThreadEntry extends AbstractLogPatternEntry {
+        /**
+         * Constructs a new ThreadEntry instance, representing a log format entry for the thread name.
+         *
+         * @param minWidth The minimum width of the formatted thread name. If the formatted
+         *                 thread name is shorter than this width, padding will be added to meet
+         *                 the minimum length.
+         * @param maxWidth The maximum width of the formatted thread name. If the formatted
+         *                 thread name is longer than this width, it will be truncated to the
+         *                 specified maximum length.
+         * @param leftAlign A flag indicating whether the formatted thread name should be
+         *                  left-aligned. If true, padding will be added to the right of the
+         *                  formatted thread name; otherwise, padding will be added to the left.
+         */
         public ThreadEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("t", minWidth, maxWidth, leftAlign, false);
         }
@@ -356,6 +410,25 @@ public final class LogPattern {
     public static class MdcEntry extends AbstractLogPatternEntry {
         private final @Nullable String key;
 
+        /**
+         * Constructs an instance of MdcEntry, which represents a log format entry
+         * for the Mapped Diagnostic Context (MDC). This is used to format and include
+         * contextual information captured in the MDC in log statements.
+         *
+         * @param minWidth The minimum width of the formatted output. If the formatted
+         *                 MDC entry is shorter than this width, padding will be added
+         *                 to meet the minimum length.
+         * @param maxWidth The maximum width of the formatted output. If the formatted
+         *                 MDC entry is longer than this width, it will be truncated
+         *                 to the specified maximum length.
+         * @param leftAlign A flag indicating whether the formatted output should be
+         *                  left-aligned. If true, padding will be added to the right
+         *                  of the formatted output; otherwise, padding will be added
+         *                  to the left.
+         * @param key The specific key from the MDC whose value should be formatted
+         *            and included in the log output. If null, the entire MDC will
+         *            be formatted as a key-value string.
+         */
         public MdcEntry(int minWidth, int maxWidth, boolean leftAlign, @Nullable String key) {
             super("X", minWidth, maxWidth, leftAlign, false);
             this.key = key;
@@ -451,6 +524,24 @@ public final class LogPattern {
     public static class ClassEntry extends AbstractLogPatternEntry {
         private final int abbreviationLength;
 
+        /**
+         * Constructs an instance of the ClassEntry, which represents a log entry
+         * for the class name of the log event's location. This entry supports
+         * formatting options such as minimum width, maximum width, and left alignment,
+         * as well as an optional abbreviation length for the class name.
+         *
+         * @param minWidth         The minimum width of the formatted class name. If the
+         *                         class name is shorter than this width, padding will
+         *                         be added to meet this length.
+         * @param maxWidth         The maximum width of the formatted class name. If the
+         *                         class name exceeds this length, it will be truncated.
+         * @param leftAlign        A flag indicating whether the formatted class name
+         *                         should be left-aligned. If true, padding will be added
+         *                         to the right; otherwise, it will be added to the left.
+         * @param abbreviationLength The maximum number of dot-separated package name segments
+         *                         to abbreviate in the class name. A value of 0 indicates
+         *                         no abbreviation.
+         */
         public ClassEntry(int minWidth, int maxWidth, boolean leftAlign, int abbreviationLength) {
             super("C", minWidth, maxWidth, leftAlign, true);
             this.abbreviationLength = abbreviationLength;
@@ -472,7 +563,20 @@ public final class LogPattern {
         }
     }
 
+    /**
+     * Represents a log pattern entry specifically designed to include the method name in a log message.
+     * This class is a concrete implementation of {@link AbstractLogPatternEntry}, responsible for
+     * formatting and appending the method name of the log's location information to the output.
+     */
     public static class MethodEntry extends AbstractLogPatternEntry {
+        /**
+         * Constructs a {@code MethodEntry} instance for formatting log messages to include the method name of the log's location.
+         *
+         * @param minWidth The minimum width of the formatted output. If the method name is shorter than this width, padding will be added.
+         * @param maxWidth The maximum width of the formatted output. If the method name exceeds this width, it will be truncated.
+         * @param leftAlign A boolean indicating whether the formatted method name should be left-aligned. If {@code true}, padding is added to the right; otherwise, padding is added
+         *  to the left.
+         */
         public MethodEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("M", minWidth, maxWidth, leftAlign, true);
         }
@@ -483,7 +587,25 @@ public final class LogPattern {
         }
     }
 
+    /**
+     * A specialized implementation of {@link AbstractLogPatternEntry} that formats
+     * log entries by appending the line number from the logging location. If the
+     * location is null, it appends a null value.
+     */
     public static class LineEntry extends AbstractLogPatternEntry {
+        /**
+         * Constructs a LineEntry instance with specified formatting parameters for log entries.
+         *
+         * @param minWidth The minimum width of the formatted line entry. If the formatted
+         *                 value is shorter than this width, padding will be added to meet
+         *                 the minimum length.
+         * @param maxWidth The maximum width of the formatted line entry. If the formatted
+         *                 value is longer than this width, it will be truncated to meet
+         *                 the specified maximum length.
+         * @param leftAlign A flag indicating whether the formatted line entry should be
+         *                  left-aligned. If true, padding will be added to the right side
+         *                  of the formatted output; otherwise, it will be added to the left.
+         */
         public LineEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("L", minWidth, maxWidth, leftAlign, true);
         }
@@ -494,7 +616,24 @@ public final class LogPattern {
         }
     }
 
+    /**
+     * A concrete implementation of {@link AbstractLogPatternEntry} that formats and appends
+     * the name of the file associated with the location of the log event.
+     */
     public static class FileEntry extends AbstractLogPatternEntry {
+        /**
+         * Constructs a FileEntry instance, which is a concrete implementation of
+         * {@link AbstractLogPatternEntry} that formats and appends the file name
+         * associated with the location of a log event.
+         *
+         * @param minWidth The minimum width of the formatted output. If the file name is shorter than
+         *                 this width, padding will be added to meet the specified length.
+         * @param maxWidth The maximum width of the formatted output. If the file name is longer than
+         *                 this width, it will be truncated to fit the specified length.
+         * @param leftAlign A flag indicating whether the formatted output should be left-aligned.
+         *                  If true, padding will be added to the right; otherwise, padding
+         *                  will be added to the left.
+         */
         public FileEntry(int minWidth, int maxWidth, boolean leftAlign) {
             super("F", minWidth, maxWidth, leftAlign, true);
         }
@@ -764,8 +903,9 @@ public final class LogPattern {
      * @param msg          the message supplier
      * @param t            the throwable, if any
      * @param consoleCodes the color codes for the log level (start and end)
+     * @throws IOException if an I/O error occurs while writing to the appendable
      */
-    public void formatLogEntry(Appendable app, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, LocationResolver loc, Supplier<String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) throws IOException {
+    public void formatLogEntry(Appendable app, Instant instant, String loggerName, LogLevel lvl, @Nullable String mrk, @Nullable MDC mdc, LocationResolver loc, Supplier<@Nullable String> msg, @Nullable Throwable t, @Nullable ConsoleCode consoleCodes) throws IOException {
         Location location = isLocationNeeded() ? loc.resolve() : null;
         for (LogPatternEntry entry : entries) {
             entry.format(app, instant, loggerName, lvl, mrk, mdc, location, msg, t, consoleCodes);

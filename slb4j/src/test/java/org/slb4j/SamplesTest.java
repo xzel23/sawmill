@@ -1,6 +1,7 @@
 package org.slb4j;
 
 import org.junit.jupiter.api.Test;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -14,12 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SamplesTest {
 
     @Test
-    void testSampleAll() throws IOException, InterruptedException {
+    void testSampleAll() throws Exception {
         runSample("all", List.of(
                 "Message from JUL",
                 "Message from JCL",
@@ -29,22 +31,22 @@ class SamplesTest {
     }
 
     @Test
-    void testSampleJul() throws IOException, InterruptedException {
+    void testSampleJul() throws Exception {
         runSample("jul", List.of("Hello from JUL!"));
     }
 
     @Test
-    void testSampleJcl() throws IOException, InterruptedException {
+    void testSampleJcl() throws Exception {
         runSample("jcl", List.of("Hello from JCL!"));
     }
 
     @Test
-    void testSampleLog4j() throws IOException, InterruptedException {
+    void testSampleLog4j() throws Exception {
         runSample("log4j", List.of("Hello from Log4j!"));
     }
 
     @Test
-    void testSampleSlf4j() throws IOException, InterruptedException {
+    void testSampleSlf4j() throws Exception {
         runSample("slf4j", List.of("Hello from SLF4J!"));
     }
 
@@ -70,10 +72,10 @@ class SamplesTest {
         );
 
         String mainClass = "org.slb4j.samples." + sampleName + ".Main";
-        
+
         List<String> command = new ArrayList<>();
         command.add(javaBin);
-        
+
         // Pass JaCoCo agent if present
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         List<String> arguments = runtimeMxBean.getInputArguments();
@@ -95,7 +97,7 @@ class SamplesTest {
                 "-Dslf4j.provider=slb4j.frontend.slf4j.LoggingServiceProviderSlf4j",
                 "-Dorg.apache.commons.logging.LogFactory=org.apache.commons.logging.impl.LogFactoryImpl",
                 "-Dorg.apache.commons.logging.Log=slb4j.frontend.jcl.LoggerJcl",
-                "-cp", combinedClasspath, 
+                "-cp", combinedClasspath,
                 mainClass
         ));
 
@@ -113,7 +115,7 @@ class SamplesTest {
         }
 
         int exitCode = process.waitFor();
-        assertTrue(exitCode == 0, "Sample " + sampleName + " exited with code " + exitCode);
+        assertEquals(0, exitCode, "Sample " + sampleName + " exited with code " + exitCode);
 
         for (String expected : expectedOutputs) {
             assertTrue(output.stream().anyMatch(l -> l.contains(expected)),

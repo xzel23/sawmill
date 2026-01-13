@@ -1,5 +1,6 @@
 package org.slb4j.ext.swing;
 
+import org.jspecify.annotations.Nullable;
 import org.slb4j.ConsoleCode;
 import org.slb4j.LogFilter;
 import org.slb4j.LogLevel;
@@ -49,6 +50,10 @@ import java.util.Objects;
  */
 public class SwingLogPane extends JPanel implements LogPane {
 
+    /**
+     * A default instance of {@link LogPaneTexts} that provides predefined text values
+     * used to label various components of the log pane user interface.
+     */
     public static final LogPaneTexts DEFAULT_TEXTS = LogPaneTexts.of(
             "Up",
             "Down",
@@ -69,6 +74,7 @@ public class SwingLogPane extends JPanel implements LogPane {
     private final TableRowSorter<LogTableModel> sorter;
     private final JTextArea details;
     private final LogPattern pattern = LogPattern.DEFAULT_PATTERN;
+    @SuppressWarnings("StringBufferField")
     private final StringBuilder buffer = new StringBuilder(4096);
     private boolean autoScroll = true;
     private boolean darkMode = false;
@@ -114,7 +120,7 @@ public class SwingLogPane extends JPanel implements LogPane {
         table = new JTable(tableModel);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        
+
         sorter = new TableRowSorter<>(tableModel);
         table.setRowSorter(sorter);
 
@@ -132,31 +138,31 @@ public class SwingLogPane extends JPanel implements LogPane {
         // ToolBar
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
-        
+
         JComboBox<LogLevel> cbLogLevel = new JComboBox<>(LogLevel.values());
         cbLogLevel.setSelectedItem(LogLevel.INFO);
         JTextField tfLoggerName = new JTextField(15);
         JTextField tfMessageContent = new JTextField(15);
-        
+
         Runnable updateFilter = () -> {
             LogLevel level = (LogLevel) cbLogLevel.getSelectedItem();
             String loggerText = tfLoggerName.getText().toLowerCase(Locale.ROOT).strip();
             String messageText = tfMessageContent.getText();
-            
-            LogFilter filter = new LogLevelFilter("Filter level", level);
+
+            LogFilter filter = level == null ? LogFilter.allPass() : new LogLevelFilter("Filter level", level);
             if (!loggerText.isEmpty()) {
                 filter = filter.andThen(new LoggerNameFilter("loggerName", name -> name.toLowerCase(Locale.ROOT).contains(loggerText)));
             }
             if (!messageText.isEmpty()) {
                 filter = filter.andThen(new MessageTextFilter("messageContent", text -> text.contains(messageText)));
             }
-            
+
             final LogFilter finalFilter = filter;
-            sorter.setRowFilter(new RowFilter<LogTableModel, Integer>() {
+            sorter.setRowFilter(new RowFilter<>() {
                 @Override
                 public boolean include(Entry<? extends LogTableModel, ? extends Integer> entry) {
                     LogEntry logEntry = entry.getModel().getEntry(entry.getIdentifier());
-                    return LogEntryFilter.forFilter(finalFilter).test(logEntry);
+                    return logEntry != null && LogEntryFilter.forFilter(finalFilter).test(logEntry);
                 }
             });
         };
@@ -164,11 +170,11 @@ public class SwingLogPane extends JPanel implements LogPane {
         cbLogLevel.addActionListener(e -> updateFilter.run());
         tfLoggerName.addKeyListener(new KeyAdapter() {
             @Override
-            public void keyReleased(KeyEvent e) { updateFilter.run(); }
+            public void keyReleased(KeyEvent e) {updateFilter.run();}
         });
         tfMessageContent.addKeyListener(new KeyAdapter() {
             @Override
-            public void keyReleased(KeyEvent e) { updateFilter.run(); }
+            public void keyReleased(KeyEvent e) {updateFilter.run();}
         });
 
         toolBar.add(new JLabel(texts.labelFilterLogLevel()));
@@ -234,7 +240,7 @@ public class SwingLogPane extends JPanel implements LogPane {
                 });
             }
         });
-        
+
         tableScrollPane.getVerticalScrollBar().addAdjustmentListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 autoScroll = isScrolledToBottom() && table.getSelectedRow() == -1;
@@ -296,7 +302,7 @@ public class SwingLogPane extends JPanel implements LogPane {
             int row = Math.floorMod(startRow + step * (i + 1), rowCount);
             int modelRow = table.convertRowIndexToModel(row);
             LogEntry entry = tableModel.getEntry(modelRow);
-            String message = entry.message();
+            String message = entry == null ? null : entry.message();
             if (message != null && message.toLowerCase(Locale.ROOT).contains(lowercaseText)) {
                 table.setRowSelectionInterval(row, row);
                 table.scrollRectToVisible(table.getCellRect(row, 0, true));
@@ -305,7 +311,9 @@ public class SwingLogPane extends JPanel implements LogPane {
         }
     }
 
-    private String formatLogEntry(LogEntry entry) {
+    private String formatLogEntry(@Nullable LogEntry entry) {
+        if (entry == null) return "";
+
         StringBuilder sb = new StringBuilder();
         try {
             pattern.formatLogEntry(sb, entry.time(), entry.logger(), entry.level(), entry.marker(), entry.mdc(), entry::location, entry::message, entry.throwable(), ConsoleCode.empty());
@@ -346,14 +354,14 @@ public class SwingLogPane extends JPanel implements LogPane {
     }
 
     @Override
-    public void setDarkMode(boolean darkMode) {
-        this.darkMode = darkMode;
-        java.awt.Color bg = darkMode ? DARK_BG : LIGHT_BG;
-        java.awt.Color fg = darkMode ? DARK_FG : LIGHT_FG;
+    public void setDarkMode(boolean dark) {
+        this.darkMode = dark;
+        java.awt.Color bg = dark ? DARK_BG : LIGHT_BG;
+        java.awt.Color fg = dark ? DARK_FG : LIGHT_FG;
 
         table.setBackground(bg);
         table.setForeground(fg);
-        table.setGridColor(darkMode ? java.awt.Color.GRAY : java.awt.Color.LIGHT_GRAY);
+        table.setGridColor(dark ? java.awt.Color.GRAY : java.awt.Color.LIGHT_GRAY);
 
         details.setBackground(bg);
         details.setForeground(fg);

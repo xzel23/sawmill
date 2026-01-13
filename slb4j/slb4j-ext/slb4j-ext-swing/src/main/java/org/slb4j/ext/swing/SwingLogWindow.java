@@ -62,7 +62,7 @@ public class SwingLogWindow extends JFrame implements LogWindow {
     public SwingLogWindow(String title, LogBuffer logBuffer, LogPaneTexts texts) {
         super(title);
         this.logBuffer = Objects.requireNonNull(logBuffer);
-        
+
         SwingLogPane logPane = new SwingLogPane(this.logBuffer, texts);
         setContentPane(logPane);
 

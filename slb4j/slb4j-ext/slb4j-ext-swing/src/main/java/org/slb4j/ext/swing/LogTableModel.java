@@ -1,5 +1,6 @@
 package org.slb4j.ext.swing;
 
+import org.jspecify.annotations.Nullable;
 import org.slb4j.ext.LogBuffer;
 import org.slb4j.ext.LogEntry;
 
@@ -20,7 +21,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 final class LogTableModel extends AbstractTableModel implements LogBuffer.LogBufferListener {
     private static final long REST_TIME_IN_MS = 50;
 
-    private volatile List<LogEntry> data = Collections.emptyList();
+    private volatile List<@Nullable LogEntry> data = Collections.emptyList();
     private final AtomicLong totalAdded = new AtomicLong(0);
     private final AtomicLong totalRemoved = new AtomicLong(0);
 
@@ -62,7 +63,7 @@ final class LogTableModel extends AbstractTableModel implements LogBuffer.LogBuf
                             fireTableRowsInserted(newSz - addedRows, newSz - 1);
                         }
                         if (removedRows == 0 && addedRows == 0 && oldSz == newSz && oldSz > 0) {
-                             fireTableDataChanged();
+                            fireTableDataChanged();
                         }
                     });
                 } catch (InterruptedException e) {
@@ -96,14 +97,14 @@ final class LogTableModel extends AbstractTableModel implements LogBuffer.LogBuf
     }
 
     @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
+    public @Nullable Object getValueAt(int rowIndex, int columnIndex) {
         if (rowIndex < 0 || rowIndex >= data.size()) {
             return null;
         }
         return data.get(rowIndex);
     }
 
-    public LogEntry getEntry(int rowIndex) {
+    public @Nullable LogEntry getEntry(int rowIndex) {
         return data.get(rowIndex);
     }
 

@@ -182,6 +182,7 @@ public final class UniversalDispatcher implements LogDispatcher {
      * @param loggerName the name of the logger emitting the event; must not be null
      * @param level the SLF4J {@link org.slf4j.event.Level} of the log event; must not be null
      * @param marker an optional {@link org.slf4j.Marker} associated with the log event; may be null
+     * @param mdc the MDC context associated with the log event; may be null
      * @param messagePattern the SLF4J-style message pattern to be formatted; must not be null
      * @param arguments an optional array of arguments for the message pattern; may be null or empty
      * @param t an optional {@link Throwable} associated with the log event; may be null

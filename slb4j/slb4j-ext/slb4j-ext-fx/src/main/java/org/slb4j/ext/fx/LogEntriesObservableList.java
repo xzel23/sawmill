@@ -96,9 +96,9 @@ final class LogEntriesObservableList extends ObservableListBase<LogEntry> implem
     }
 
     @Override
-    public LogEntry get(int idx) {
+    public LogEntry get(int index) {
         assert Platform.isFxApplicationThread() : "not on FX Application Thread";
-        return data.get(idx);
+        return data.get(index);
     }
 
     @Override

@@ -134,6 +134,7 @@ public class FxLogPane extends BorderPane implements LogPane {
      * As all log message formatting int this class must happen on the
      * FX Application thread, we use a single instance to avoid GC flooding.
      */
+    @SuppressWarnings("StringBufferField")
     private final StringBuilder buffer = new StringBuilder(MAX_BUFFER_SIZE);
 
     private final LogBuffer logBuffer;
@@ -202,7 +203,7 @@ public class FxLogPane extends BorderPane implements LogPane {
         return new Text(s).getLayoutBounds().getWidth();
     }
 
-    public static URL getResourceURL(Class<?> clazz, String resource) {
+    private static URL getResourceURL(Class<?> clazz, String resource) {
         URL url = clazz.getResource(resource);
         if (url == null) {
             throw new MissingResourceException("Resource not found: " + resource, clazz.getName(), resource);
@@ -329,6 +330,7 @@ public class FxLogPane extends BorderPane implements LogPane {
 
         // define table columns
         tableView.setEditable(false);
+        //noinspection unchecked
         tableView.getColumns().setAll(
                 createColumn(texts.headerTimeColumn(), new LogPattern.DateEntry("HH:mm:ss,SSS"), true, "88:88:88,888"),
                 createColumn(texts.headerLevelColumn(), new LogPattern.LevelEntry(0, 0, false), true, Arrays.stream(LogLevel.values()).map(Object::toString).toArray(String[]::new)),
@@ -476,7 +478,7 @@ public class FxLogPane extends BorderPane implements LogPane {
 
         String loggerText = tfLoggerName.getText().toLowerCase(Locale.ROOT).strip();
         if (!loggerText.isEmpty()) {
-            filter = filter.andThen(new LoggerNameFilter("loggerName",  name -> name.toLowerCase(Locale.ROOT).contains(loggerText)));
+            filter = filter.andThen(new LoggerNameFilter("loggerName", name -> name.toLowerCase(Locale.ROOT).contains(loggerText)));
         }
 
         String messageContent = tfMessageContent.getText();

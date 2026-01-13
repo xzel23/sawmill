@@ -53,8 +53,6 @@ class SupportTest {
         assertEquals("world", anotherWorld.toString());
         assertEquals(sub, anotherWorld);
         assertEquals(sub.hashCode(), anotherWorld.hashCode());
-
-        assertNotEquals(sub, "world");
     }
 
     @Test

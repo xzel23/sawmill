@@ -47,6 +47,7 @@ public final class Util {
      * Appends the stack trace of a throwable to a StringBuilder.
      * @param app the StringBuilder to append to
      * @param t the throwable
+     * @throws IOException if an I/O error occurs
      */
     public static void appendStackTrace(Appendable app, Throwable t) throws IOException {
         app.append(String.valueOf(t)).append(LINE_SEPARATOR);

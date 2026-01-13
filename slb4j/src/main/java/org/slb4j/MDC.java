@@ -24,5 +24,14 @@ public interface MDC {
      */
     @Nullable String get(String key);
 
+    /**
+     * Returns a stream of all key-value pairs currently stored in the Mapping Diagnostic Context (MDC).
+     * Each entry in the stream represents an individual key-value pair from the MDC, where the key
+     * is a contextual identifier and the value is its associated information.
+     *
+     * @return a sequential {@code Stream} of {@code Map.Entry<String, String>} containing
+     *         all key-value pairs in the MDC. The stream reflects the state of the MDC
+     *         at the time of its creation.
+     */
     Stream<Map.Entry<String, String>> stream();
 }

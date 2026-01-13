@@ -1,4 +1,4 @@
-package org.slb4j.ext.fx;
+package org.slb4j.ext;
 
 public interface LogPaneTexts {
     String textSearchUp();

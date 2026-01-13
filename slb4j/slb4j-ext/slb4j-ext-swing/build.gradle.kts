@@ -26,7 +26,7 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
 
     api(project(":slb4j"))
-    implementation(project(":slb4j:slb4j-ext"))
+    api(project(":slb4j:slb4j-ext"))
 }
 
 tasks.test {

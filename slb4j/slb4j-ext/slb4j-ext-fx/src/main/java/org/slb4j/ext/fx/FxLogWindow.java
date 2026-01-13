@@ -1,6 +1,7 @@
 package org.slb4j.ext.fx;
 
 import org.slb4j.ext.LogBuffer;
+import org.slb4j.ext.LogPaneTexts;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.stage.Screen;

@@ -11,5 +11,5 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.dua3.sawmill.carpenter.swing.samples.Main")
+    mainClass.set("org.slb4j.ext.swing.samples.SwingLogWindowSample")
 }

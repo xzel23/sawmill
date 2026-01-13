@@ -21,9 +21,10 @@ import org.jspecify.annotations.NullMarked;
  */
 @NullMarked
 module org.slb4j.ext.swing {
-    exports com.dua3.sawmill.carpenter.swing;
+    exports org.slb4j.ext.swing;
 
     requires org.slb4j;
     requires org.slb4j.ext;
     requires org.jspecify;
+    requires java.desktop;
 }

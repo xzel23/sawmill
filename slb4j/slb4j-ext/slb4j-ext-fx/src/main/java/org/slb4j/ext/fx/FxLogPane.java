@@ -7,6 +7,7 @@ import org.slb4j.LogPattern;
 import org.slb4j.SLB4J;
 import org.slb4j.ext.LogBuffer;
 import org.slb4j.ext.LogEntry;
+import org.slb4j.ext.LogPaneTexts;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;

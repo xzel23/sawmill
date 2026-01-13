@@ -98,6 +98,7 @@ allprojects {
 
     jdk {
         version = 21
+        javaFxBundled = true
     }
 
     // --- PUBLISHING ---

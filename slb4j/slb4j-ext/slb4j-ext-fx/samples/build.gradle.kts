@@ -12,5 +12,5 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.dua3.sawmill.carpenter.fx.samples.Main")
+    mainClass.set("org.slb4j.ext.fx.samples.FxLogPaneSample")
 }

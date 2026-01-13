@@ -46,6 +46,7 @@ public class FileHandler implements LogHandler, AutoCloseable {
     private final String name;
     private final Path path;
     private final boolean append;
+    private @Nullable String filePattern;
     private volatile LogPattern logPattern = LogPattern.DEFAULT_PATTERN;
     private volatile LogFilter filter = LogFilter.allPass();
 
@@ -109,9 +110,17 @@ public class FileHandler implements LogHandler, AutoCloseable {
                     StandardCharsets.UTF_8
             );
         } finally {
-            currentEntries = 0;
             currentSize.reset();
             currentSize.add(Files.size(path));
+            currentEntries = countLines(path);
+        }
+    }
+
+    private long countLines(Path path) {
+        try (var lines = Files.lines(path)) {
+            return lines.count();
+        } catch (IOException e) {
+            return 0;
         }
     }
 
@@ -121,6 +130,25 @@ public class FileHandler implements LogHandler, AutoCloseable {
         } else {
             nextRotationTime = null;
         }
+    }
+
+    /**
+     * Sets the file pattern for archived log files.
+     * The pattern can contain {@code %i} for an integer index.
+     *
+     * @param filePattern the file pattern
+     */
+    public synchronized void setFilePattern(@Nullable String filePattern) {
+        this.filePattern = filePattern;
+    }
+
+    /**
+     * Gets the file pattern for archived log files.
+     *
+     * @return the file pattern
+     */
+    public synchronized @Nullable String getFilePattern() {
+        return filePattern;
     }
 
     /**
@@ -233,6 +261,35 @@ public class FileHandler implements LogHandler, AutoCloseable {
             entriesSinceLastFlush = 0;
         }
 
+        if (filePattern != null && !filePattern.isEmpty()) {
+            rotateWithPattern();
+        } else {
+            rotateWithIndex();
+        }
+
+        openFile();
+    }
+
+    private void rotateWithPattern() throws IOException {
+        String targetName = filePattern;
+        if (targetName.contains("%i")) {
+            // Find the first available index
+            int index = 1;
+            Path targetPath;
+            do {
+                targetPath = path.resolveSibling(targetName.replace("%i", String.valueOf(index)));
+                index++;
+            } while (Files.exists(targetPath));
+            Files.move(path, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } else {
+            // No index in pattern, just use it (and hope it doesn't collide or user knows what they are doing)
+            // Log4J usually uses date patterns here.
+            Path targetPath = path.resolveSibling(targetName);
+            Files.move(path, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private void rotateWithIndex() throws IOException {
         // Rename existing backup files
         for (int i = maxBackupIndex - 1; i >= 1; i--) {
             Path src = getBackupPath(i);
@@ -246,8 +303,6 @@ public class FileHandler implements LogHandler, AutoCloseable {
         if (Files.exists(path)) {
             Files.move(path, getBackupPath(1), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         }
-
-        openFile();
     }
 
     private Path getBackupPath(int index) {

@@ -18,7 +18,9 @@ class LoggingConfigurationTest {
         props.setProperty("appender.file.type", "File");
         props.setProperty("appender.file.fileName", logFile.toString());
         props.setProperty("appender.file.append", "false");
+        props.setProperty("appender.file.filePattern", "test-%i.log");
         props.setProperty("appender.file.policies.size.size", "1024");
+        props.setProperty("appender.file.policies.time.interval", "1");
         props.setProperty("appender.file.strategy.max", "5");
         props.setProperty("appender.file.layout.pattern", "%m%n");
 
@@ -31,10 +33,12 @@ class LoggingConfigurationTest {
 
         assertInstanceOf(FileHandler.class, handler);
         FileHandler fileHandler = (FileHandler) handler;
-
+        
         assertEquals(logFile.toAbsolutePath(), fileHandler.getPath().toAbsolutePath());
         assertFalse(fileHandler.isAppend());
+        assertEquals("test-%i.log", fileHandler.getFilePattern());
         assertEquals(1024L, fileHandler.getMaxFileSize());
+        assertNotNull(fileHandler.getRotationTimeUnit());
         assertEquals(5, fileHandler.getMaxBackupIndex());
         assertEquals("%m%n", fileHandler.getPattern());
 

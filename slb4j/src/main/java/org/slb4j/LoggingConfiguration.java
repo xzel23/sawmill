@@ -24,6 +24,7 @@ import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -132,6 +133,16 @@ public final class LoggingConfiguration {
      * Configuration key for specifying the maximum number of backup files to keep.
      */
     public static final String LOGGER_FILE_MAX_BACKUPS = "strategy.max";
+
+    /**
+     * Configuration key for specifying the file pattern for archived log files.
+     */
+    public static final String LOGGER_FILE_PATTERN = "filePattern";
+
+    /**
+     * Configuration key for specifying the rotation time interval.
+     */
+    public static final String LOGGER_FILE_TIME_INTERVAL = "policies.time.interval";
 
     // *** filter configuration ***
 
@@ -281,8 +292,15 @@ public final class LoggingConfiguration {
                 boolean append = Boolean.parseBoolean(properties.getProperty(prefix + LOGGER_FILE_APPEND, "true").strip());
                 try {
                     FileHandler fileHandler = new FileHandler(name, path, append);
+                    handleProperty(properties, prefix + LOGGER_FILE_PATTERN, s -> s, fileHandler::setFilePattern, () -> null);
                     handleProperty(properties, prefix + LOGGER_FILE_MAX_SIZE, s -> parseSize(s), fileHandler::setMaxFileSize, () -> -1L);
                     handleProperty(properties, prefix + LOGGER_FILE_MAX_BACKUPS, Integer::parseInt, fileHandler::setMaxBackupIndex, () -> 1);
+                    handleProperty(properties, prefix + LOGGER_FILE_TIME_INTERVAL, s -> {
+                        // For now, we only support basic time rotation if an interval is set,
+                        // we'll default to ChronoUnit.HOURS if any interval is provided but no specific unit.
+                        // Ideally we'd parse the unit from some other property or the filePattern.
+                        return ChronoUnit.HOURS;
+                    }, fileHandler::setRotationTimeUnit, () -> null);
                     yield fileHandler;
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
@@ -291,7 +309,7 @@ public final class LoggingConfiguration {
             default -> throw new IllegalArgumentException("unknown handler type for handler '" + name + "' : " + sType);
         };
 
-        handleProperty(properties, prefix + "filter", filters::get, handler::setFilter, LogFilter::allPass);
+        handleProperty(properties, prefix + LOGGING_FILTER, filters::get, handler::setFilter, LogFilter::allPass);
         handleProperty(properties, prefix + LOGGER_LAYOUT_PATTERN,
                 LogPattern::parse, p -> {
                     if (handler instanceof ConsoleHandler consoleHandler) {

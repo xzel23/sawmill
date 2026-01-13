@@ -172,6 +172,42 @@ class FileHandlerTest {
     }
 
     @Test
+    void testFilePatternRotation() throws IOException {
+        Path logFile = tempDir.resolve("test-pattern.log");
+        try (FileHandler handler = new FileHandler("test", logFile, false)) {
+            handler.setPattern(LogPattern.parse("%msg%n"));
+            handler.setFilePattern("test-archived-%i.log");
+            handler.setMaxEntries(1);
+
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Line 1", null);
+            // Next one triggers rotation
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Line 2", null);
+        }
+
+        assertTrue(Files.exists(logFile));
+        Path archived1 = tempDir.resolve("test-archived-1.log");
+        assertTrue(Files.exists(archived1), "archived-1 should exist");
+        assertEquals("Line 2", Files.readAllLines(logFile).getFirst());
+        assertEquals("Line 1", Files.readAllLines(archived1).getFirst());
+
+        // Test multiple rotations with pattern
+        // We need to re-open the handler, and it should still find test-archived-1.log and use test-archived-2.log
+        try (FileHandler handler = new FileHandler("test", logFile, true)) {
+            handler.setPattern(LogPattern.parse("%msg%n"));
+            handler.setFilePattern("test-archived-%i.log");
+            handler.setMaxEntries(1);
+
+            // currentEntries is 1 because logFile has "Line 2"
+            handler.handle(Instant.now(), "test", LogLevel.INFO, null, null, LOC, () -> "Line 3", null);
+        }
+
+        Path archived2 = tempDir.resolve("test-archived-2.log");
+        assertTrue(Files.exists(archived2), "archived-2 should exist");
+        assertEquals("Line 3", Files.readAllLines(logFile).getFirst());
+        assertEquals("Line 2", Files.readAllLines(archived2).getFirst());
+    }
+
+    @Test
     void testFlushStrategies() throws IOException {
         Path logFile = tempDir.resolve("test-flush.log");
 

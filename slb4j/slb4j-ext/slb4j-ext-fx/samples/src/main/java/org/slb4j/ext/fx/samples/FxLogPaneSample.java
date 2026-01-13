@@ -25,7 +25,7 @@ public class FxLogPaneSample extends Application {
         SLB4J.init();
     }
 
-    private static final int AVERAGE_SLEEP_MILLIS = 5;
+    private static final int AVERAGE_SLEEP_MILLIS = 50;
     private static final int LOG_BUFFER_SIZE = 10_000;
     private static final org.slf4j.Logger SLF4J_LOGGER = LoggerFactory.getLogger("SLF4J." + FxLogPaneSample.class.getName());
     private static final Log JCL_LOGGER = LogFactory.getLog("JCL." + FxLogPaneSample.class.getName());

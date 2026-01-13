@@ -41,14 +41,15 @@ import org.slb4j.filter.MessageTextFilter;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -112,12 +113,16 @@ public class FxLogPane extends BorderPane {
     public final StringBuilder buffer = new StringBuilder(MAX_BUFFER_SIZE);
 
     private final LogBuffer logBuffer;
+    private boolean dark = false;
     private final Texts texts;
     private final LogPattern pattern = LogPattern.parse(LogPattern.DEFAULT_PATTERN);
     private final TextArea details;
     private final TableView<@Nullable LogEntry> tableView;
 
     private final AtomicReference<@Nullable LogEntry> selectedItem = new AtomicReference<>();
+
+    private String darkCss;
+    private String lightCss;
 
     private boolean autoScroll = true;
 
@@ -158,6 +163,14 @@ public class FxLogPane extends BorderPane {
         return new Text(s).getLayoutBounds().getWidth();
     }
 
+    public static URL getResourceURL(Class<?> clazz, String resource) {
+        URL url = clazz.getResource(resource);
+        if (url == null) {
+            throw new MissingResourceException("Resource not found: " + resource, clazz.getName(), resource);
+        }
+        return url;
+    }
+
     /**
      * Construct a new FxLogPane instance with default buffer capacity.
      */
@@ -195,10 +208,15 @@ public class FxLogPane extends BorderPane {
         FilteredList<LogEntry> entries = new FilteredList<>(new LogEntriesObservableList(logBuffer), p -> true);
 
         this.logBuffer = logBuffer;
+        this.darkCss = getResourceURL(getClass(), "dark.css").toExternalForm();
+        this.lightCss = getResourceURL(getClass(), "light.css").toExternalForm();
         this.texts = texts;
         ToolBar toolBar = new ToolBar();
         this.tableView = new TableView<>(entries);
         this.details = new TextArea();
+
+        // force loading of the stylesheets
+        setDarkMode(false);
 
         // colorize table rows via CSS classes
         tableView.setRowFactory(tv -> new TableRow<>() {
@@ -313,6 +331,18 @@ public class FxLogPane extends BorderPane {
         setCenter(splitPane);
     }
 
+    /**
+     * Sets the stylesheets for light mode and dark mode for this pane.
+     *
+     * @param lightCss the path or URL to the stylesheet used for light mode
+     * @param darkCss the path or URL to the stylesheet used for dark mode
+     */
+    public void setStyleSheets(String lightCss, String darkCss) {
+        this.lightCss = lightCss;
+        this.darkCss = darkCss;
+        setDarkMode(dark); // force update of stylesheets
+    }
+
     private String formatLogEntry(LogEntry entry) {
         try {
             StringBuilder sb = getStringBuilder();
@@ -351,6 +381,15 @@ public class FxLogPane extends BorderPane {
                     Function.identity(),
                     level -> CSS_PREFIX_LOGLEVEL + level.name().toLowerCase(Locale.ROOT)
             ));
+
+    /**
+     * Set dark mode stylesheet for this pane.
+     * @param dark true to use dark.css, false to use light.css
+     */
+    public void setDarkMode(boolean dark) {
+        getStylesheets().setAll(dark ? darkCss : lightCss);
+        this.dark = dark;
+    }
 
     private static String cssClassForLogEntry(LogLevel level) {
         return CSS_CLASS_BY_LOG_LEVEL.get(level);

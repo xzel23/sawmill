@@ -13,6 +13,9 @@ import org.slb4j.filter.LogLevelFilter;
 import org.slb4j.filter.LoggerNameFilter;
 import org.slb4j.filter.MessageTextFilter;
 
+import org.slb4j.SLB4J;
+import org.slb4j.filter.LoggerNamePrefixFilter;
+
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -36,11 +39,8 @@ import java.awt.Rectangle;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.time.Instant;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 /**
  * SwingLogPane is a custom Swing component that provides a log viewer with filtering
@@ -73,11 +73,11 @@ public class SwingLogPane extends JPanel implements LogPane {
     private boolean autoScroll = true;
 
     public SwingLogPane() {
-        this(new LogBuffer());
+        this(LogBuffer.DEFAULT_CAPACITY);
     }
 
     public SwingLogPane(int bufferSize) {
-        this(new LogBuffer("SwingLogPane Buffer", bufferSize));
+        this(createBuffer(bufferSize));
     }
 
     public SwingLogPane(LogBuffer logBuffer) {
@@ -274,7 +274,7 @@ public class SwingLogPane extends JPanel implements LogPane {
     private String formatLogEntry(LogEntry entry) {
         StringBuilder sb = new StringBuilder();
         try {
-            pattern.formatLogEntry(sb, entry.time(), entry.logger(), entry.level(), entry.marker(), entry.mdc(), () -> entry.location(), () -> entry.message(), entry.throwable(), ConsoleCode.empty());
+            pattern.formatLogEntry(sb, entry.time(), entry.logger(), entry.level(), entry.marker(), entry.mdc(), entry::location, entry::message, entry.throwable(), ConsoleCode.empty());
         } catch (IOException e) {
             sb.append("Error formatting log entry: ").append(e.getMessage());
         }
@@ -302,6 +302,16 @@ public class SwingLogPane extends JPanel implements LogPane {
             }
             return this;
         }
+    }
+
+    private static LogBuffer createBuffer(int bufferSize) {
+        LogBuffer buffer = new LogBuffer("Log Buffer", bufferSize);
+        LoggerNamePrefixFilter filter = new LoggerNamePrefixFilter("filter");
+        filter.setLevel("", LogLevel.TRACE);
+        filter.setLevel("javafx", LogLevel.INFO);
+        buffer.setFilter(filter);
+        SLB4J.getDispatcher().addLogHandler(buffer);
+        return buffer;
     }
 
     public LogBuffer getLogBuffer() {

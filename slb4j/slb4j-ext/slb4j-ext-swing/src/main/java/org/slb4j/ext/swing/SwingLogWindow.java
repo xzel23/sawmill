@@ -5,6 +5,7 @@ import org.slb4j.ext.LogWindow;
 import org.slb4j.ext.LogPaneTexts;
 
 import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.util.Objects;
@@ -22,7 +23,7 @@ public class SwingLogWindow extends JFrame implements LogWindow {
      * @param title the window title
      */
     public SwingLogWindow(String title) {
-        this(title, new LogBuffer());
+        this(title, LogBuffer.DEFAULT_CAPACITY);
     }
 
     /**
@@ -32,17 +33,23 @@ public class SwingLogWindow extends JFrame implements LogWindow {
      * @param maxLines the maximum number of lines to display in the log window
      */
     public SwingLogWindow(String title, int maxLines) {
-        this(title, new LogBuffer(SwingLogWindow.class.getSimpleName() + " Log Buffer", maxLines));
+        this(title, createBuffer(maxLines));
     }
 
     /**
      * Constructs a new instance of {@code SwingLogWindow} using the provided {@link LogBuffer}.
      *
-     * @param title the window title
+     * @param title     the window title
      * @param logBuffer the LogBuffer to use
      */
     public SwingLogWindow(String title, LogBuffer logBuffer) {
         this(title, logBuffer, SwingLogPane.DEFAULT_TEXTS);
+    }
+
+    private static LogBuffer createBuffer(int bufferSize) {
+        LogBuffer buffer = new LogBuffer("Log Buffer", bufferSize);
+        org.slb4j.SLB4J.getDispatcher().addLogHandler(buffer);
+        return buffer;
     }
 
     /**
@@ -65,7 +72,7 @@ public class SwingLogWindow extends JFrame implements LogWindow {
         setSize(width, height);
         setLocation((screenSize.width - width) / 2, screenSize.height - height);
 
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     }
 
     /**

@@ -28,10 +28,7 @@ final class LogTableModel extends AbstractTableModel implements LogBuffer.LogBuf
     private final Lock updateWriteLock = updateLock.writeLock();
     private final Condition updatesAvailableCondition = updateWriteLock.newCondition();
 
-    private final LogBuffer buffer;
-
     LogTableModel(LogBuffer buffer) {
-        this.buffer = buffer;
         buffer.addLogBufferListener(this);
 
         Thread updateThread = new Thread(() -> {
@@ -64,7 +61,7 @@ final class LogTableModel extends AbstractTableModel implements LogBuffer.LogBuf
                         if (addedRows > 0) {
                             fireTableRowsInserted(newSz - addedRows, newSz - 1);
                         }
-                        if (removedRows == 0 && addedRows == 0 && oldSz == newSz) {
+                        if (removedRows == 0 && addedRows == 0 && oldSz == newSz && oldSz > 0) {
                              fireTableDataChanged();
                         }
                     });

@@ -397,7 +397,10 @@ public class FxLogPane extends BorderPane {
         for (int i = 0; i < n; i++) {
             int j = Math.floorMod(pos + step * i, n);
             LogEntry logEntry = items.get(j);
-            if (logEntry.message().toLowerCase(Locale.ROOT).contains(lowercaseText) && (i != 0 || current == null)) { // skip current entry if selected
+            String message = logEntry.message();
+            if ((i != 0 || current == null) // skip the current entry if selected
+                    && message != null
+                    && message.toLowerCase(Locale.ROOT).contains(lowercaseText)) {
                 selectLogEntry(logEntry);
                 break;
             }
@@ -443,7 +446,16 @@ public class FxLogPane extends BorderPane {
         tableView.scrollTo(logEntry);
     }
 
-    private void checkApplicationThread() {
+    /**
+     * Ensures that the method invoking this function is being executed on the JavaFX Application Thread.
+     * If the current thread is not the JavaFX Application Thread, an {@code IllegalStateException} is thrown.
+     * <p>
+     * This method is crucial for operations that manipulate UI components or require execution exclusively
+     * on the JavaFX Application Thread to maintain thread safety.
+     *
+     * @throws IllegalStateException if the current thread is not the JavaFX Application Thread
+     */
+    private static void checkApplicationThread() {
         if (!Platform.isFxApplicationThread()) {
             throw new IllegalStateException("not on FX Application Thread");
         }

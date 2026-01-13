@@ -24,7 +24,6 @@ import java.io.PrintStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,33 +45,14 @@ public final class LoggingConfiguration {
     /**
      * Represents the root property key for the logging configurations.
      */
-    public static final String LOGGING_ROOT = "logging";
-
-    /**
-     * Defines the key used to specify the logging handlers configuration in the
-     * logging properties.
-     */
-    public static final String LOGGING_HANDLERS = LOGGING_ROOT + ".handlers";
+    public static final String LOGGING_ROOT = "appender";
 
     /**
      * Configuration key for specifying the properties of log handlers.
      * <p>
      * To configure a handler with name 'name', use {@code LOGGING_HANDLER + "name"}.
      */
-    public static final String LOGGING_HANDLER = LOGGING_ROOT + ".handler";
-
-    /**
-     * Defines the key used to specify the logging filters configuration in the
-     * logging properties.
-     */
-    public static final String LOGGING_FILTERS = LOGGING_ROOT + ".filters";
-
-    /**
-     * Configuration key for specifying the properties of log filters.
-     * <p>
-     * To configure a handler with name 'name', use {@code LOGGING_HANDLER + "name"}.
-     */
-    public static final String LOGGING_FILTER = LOGGING_ROOT + ".filter";
+    public static final String LOGGING_HANDLER = "appender";
 
     /**
      * A constant representing the key for specifying the handler type in configuration properties.
@@ -87,17 +67,17 @@ public final class LoggingConfiguration {
      * Valid values are {@code LoggingConfiguration.SYSTEM_OUT} and
      * {@code LoggingConfiguration.SYSTEM_ERR}.
      */
-    public static final String LOGGER_CONSOLE_STREAM = "stream";
+    public static final String LOGGER_CONSOLE_TARGET = "target";
 
     /**
      * Constant representing the standard output stream to configure the console handler stream.
      */
-    public static final String SYSTEM_OUT = "system.out";
+    public static final String SYSTEM_OUT = "SYSTEM_OUT";
 
     /**
      * Constant representing the standard error stream to configure the console handler stream.
      */
-    public static final String SYSTEM_ERR = "system.err";
+    public static final String SYSTEM_ERR = "SYSTEM_ERR";
 
     /**
      * Constant representing the configuration key used to specify whether console logging
@@ -113,7 +93,8 @@ public final class LoggingConfiguration {
     /**
      * Configuration key for specifying the pattern used by the console logger.
      */
-    public static final String LOGGER_CONSOLE_PATTERN = "pattern";
+    public static final String LOGGER_LAYOUT_TYPE = "layout.type";
+    public static final String LOGGER_LAYOUT_PATTERN = "layout.pattern";
 
     /**
      * Constant representing colored output for the console handler.
@@ -135,7 +116,7 @@ public final class LoggingConfiguration {
     /**
      * Configuration key for specifying the path to the log file.
      */
-    public static final String LOGGER_FILE_PATH = "path";
+    public static final String LOGGER_FILE_NAME = "fileName";
 
     /**
      * Configuration key for specifying whether to append to the log file.
@@ -145,39 +126,19 @@ public final class LoggingConfiguration {
     /**
      * Configuration key for specifying the maximum file size before rotation.
      */
-    public static final String LOGGER_FILE_MAX_SIZE = "max-size";
-
-    /**
-     * Configuration key for specifying the maximum number of entries before rotation.
-     */
-    public static final String LOGGER_FILE_MAX_ENTRIES = "max-entries";
-
-    /**
-     * Configuration key for specifying the rotation time unit.
-     */
-    public static final String LOGGER_FILE_ROTATION_UNIT = "rotation-unit";
+    public static final String LOGGER_FILE_MAX_SIZE = "policies.size.size";
 
     /**
      * Configuration key for specifying the maximum number of backup files to keep.
      */
-    public static final String LOGGER_FILE_MAX_BACKUPS = "max-backups";
-
-    /**
-     * Configuration key for specifying the log level at which a flush is triggered.
-     */
-    public static final String LOGGER_FILE_FLUSH_LEVEL = "flush-level";
-
-    /**
-     * Configuration key for specifying the number of entries after which a flush is triggered.
-     */
-    public static final String LOGGER_FILE_FLUSH_ENTRIES = "flush-entries";
-
-    /**
-     * Configuration key for specifying the pattern used by the file logger.
-     */
-    public static final String LOGGER_FILE_PATTERN = "pattern";
+    public static final String LOGGER_FILE_MAX_BACKUPS = "strategy.max";
 
     // *** filter configuration ***
+
+    /**
+     * Configuration key for specifying the properties of log filters.
+     */
+    public static final String LOGGING_FILTER = "filter";
 
     /**
      * A constant representing the logging level configuration property.
@@ -231,8 +192,21 @@ public final class LoggingConfiguration {
      * @param properties the {@link Properties} object containing configuration settings
      */
     private void configure(Properties properties) {
-        handleProperty(properties, LOGGING_FILTERS, s -> parseList(s, name -> name), (List<String> list) -> list.forEach(name -> addFilter(properties, name)), List::of);
-        handleProperty(properties, LOGGING_HANDLERS, s -> parseList(s, name -> name), (List<String> list) -> list.forEach(name -> addHandler(properties, name)), List::of);
+        // Collect all appender names from keys like appender.<name>.type
+        List<String> appenderNames = properties.stringPropertyNames().stream()
+                .filter(key -> key.startsWith(LOGGING_HANDLER + ".") && key.endsWith("." + LOGGING_TYPE))
+                .map(key -> key.substring(LOGGING_HANDLER.length() + 1, key.length() - LOGGING_TYPE.length() - 1))
+                .toList();
+
+        appenderNames.forEach(name -> addHandler(properties, name));
+
+        // Collect all filter names from keys like filter.<name>.level
+        List<String> filterNames = properties.stringPropertyNames().stream()
+                .filter(key -> key.startsWith(LOGGING_FILTER + ".") && key.endsWith("." + LEVEL))
+                .map(key -> key.substring(LOGGING_FILTER.length() + 1, key.length() - LEVEL.length() - 1))
+                .toList();
+
+        filterNames.forEach(name -> addFilter(properties, name));
     }
 
     /**
@@ -281,13 +255,13 @@ public final class LoggingConfiguration {
         String prefix = LOGGING_HANDLER + "." + name + ".";
 
         String sType = properties.getProperty(prefix + LOGGING_TYPE, "").strip();
-        LogHandler handler = switch (sType) {
+        LogHandler handler = switch (sType.toLowerCase()) {
             case "console" -> {
-                PrintStream stream = switch (properties.getProperty(prefix + LOGGER_CONSOLE_STREAM, SYSTEM_OUT).strip()) {
+                PrintStream stream = switch (properties.getProperty(prefix + LOGGER_CONSOLE_TARGET, SYSTEM_OUT).strip()) {
                     case SYSTEM_OUT -> System.out;
                     case SYSTEM_ERR -> System.err;
                     default ->
-                            throw new IllegalArgumentException("handler '" + name + "' - invalid value for '" + LOGGER_CONSOLE_STREAM + "': '" + sType + "'");
+                            throw new IllegalArgumentException("handler '" + name + "' - invalid value for '" + LOGGER_CONSOLE_TARGET + "': '" + sType + "'");
                 };
 
                 String sColored = properties.getProperty(prefix + LOGGER_CONSOLE_COLORED, "false");
@@ -301,18 +275,14 @@ public final class LoggingConfiguration {
 
                 yield new ConsoleHandler(name, stream, colored);
             }
-            case "file" -> {
-                String sPath = properties.getProperty(prefix + LOGGER_FILE_PATH, name + ".log").strip();
+            case "file", "rollingfile" -> {
+                String sPath = properties.getProperty(prefix + LOGGER_FILE_NAME, name + ".log").strip();
                 Path path = Paths.get(sPath);
                 boolean append = Boolean.parseBoolean(properties.getProperty(prefix + LOGGER_FILE_APPEND, "true").strip());
                 try {
                     FileHandler fileHandler = new FileHandler(name, path, append);
-                    handleProperty(properties, prefix + LOGGER_FILE_MAX_SIZE, Long::parseLong, fileHandler::setMaxFileSize, () -> -1L);
-                    handleProperty(properties, prefix + LOGGER_FILE_MAX_ENTRIES, Long::parseLong, fileHandler::setMaxEntries, () -> -1L);
-                    handleProperty(properties, prefix + LOGGER_FILE_ROTATION_UNIT, s -> ChronoUnit.valueOf(s.toUpperCase()), fileHandler::setRotationTimeUnit, () -> null);
+                    handleProperty(properties, prefix + LOGGER_FILE_MAX_SIZE, s -> parseSize(s), fileHandler::setMaxFileSize, () -> -1L);
                     handleProperty(properties, prefix + LOGGER_FILE_MAX_BACKUPS, Integer::parseInt, fileHandler::setMaxBackupIndex, () -> 1);
-                    handleProperty(properties, prefix + LOGGER_FILE_FLUSH_LEVEL, LogLevel::valueOf, fileHandler::setFlushLevel, () -> LogLevel.INFO);
-                    handleProperty(properties, prefix + LOGGER_FILE_FLUSH_ENTRIES, Integer::parseInt, fileHandler::setFlushEveryNEntries, () -> 1);
                     yield fileHandler;
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
@@ -322,20 +292,32 @@ public final class LoggingConfiguration {
         };
 
         handleProperty(properties, prefix + "filter", filters::get, handler::setFilter, LogFilter::allPass);
-        if (handler instanceof ConsoleHandler consoleHandler) {
-            handleProperty(properties, prefix + LOGGER_CONSOLE_PATTERN,
-                    LogPattern::parse, consoleHandler::setPattern,
-                    () -> LogPattern.DEFAULT_PATTERN
-            );
-        }
-        if (handler instanceof FileHandler fileHandler) {
-            handleProperty(properties, prefix + LOGGER_FILE_PATTERN,
-                    LogPattern::parse, fileHandler::setPattern,
-                    () -> LogPattern.DEFAULT_PATTERN
-            );
-        }
+        handleProperty(properties, prefix + LOGGER_LAYOUT_PATTERN,
+                LogPattern::parse, p -> {
+                    if (handler instanceof ConsoleHandler consoleHandler) {
+                        consoleHandler.setPattern(p);
+                    } else if (handler instanceof FileHandler fileHandler) {
+                        fileHandler.setPattern(p);
+                    }
+                },
+                () -> LogPattern.DEFAULT_PATTERN
+        );
 
         handlers.put(name, handler);
+    }
+
+    private static long parseSize(String s) {
+        s = s.strip().toUpperCase();
+        if (s.endsWith("MB")) {
+            return Long.parseLong(s.substring(0, s.length() - 2).strip()) * 1024 * 1024;
+        } else if (s.endsWith("KB")) {
+            return Long.parseLong(s.substring(0, s.length() - 2).strip()) * 1024;
+        } else if (s.endsWith("GB")) {
+            return Long.parseLong(s.substring(0, s.length() - 2).strip()) * 1024 * 1024 * 1024;
+        } else if (s.endsWith("B")) {
+            return Long.parseLong(s.substring(0, s.length() - 1).strip());
+        }
+        return Long.parseLong(s);
     }
 
     @SuppressWarnings("StringConcatenationMissingWhitespace")
@@ -372,29 +354,6 @@ public final class LoggingConfiguration {
      * @param properties the {@link Properties} object to which the logging filters and handlers will be added
      */
     public void addToProperties(Properties properties) {
-        properties.setProperty(LOGGING_FILTERS, String.join(",", filters.keySet()));
-        properties.setProperty(LOGGING_HANDLERS, String.join(",", handlers.keySet()));
-
-        // add filter configurations
-        for (Map.Entry<String, LogFilter> entry : filters.entrySet()) {
-            String name = entry.getKey();
-            LogFilter filter = entry.getValue();
-            String prefix = LOGGING_FILTER + "." + name + ".";
-
-            if (filter instanceof LoggerNamePrefixFilter logFilter) {
-                // set global filter level
-                properties.setProperty(prefix + LEVEL, logFilter.getLevel().name());
-                // set level of the root node
-                properties.setProperty(prefix + "rule", logFilter.getLevel("").name());
-
-                // recursively traverse logFilter.getRoot() and add properties
-                logFilter.getRules().forEach((loggerName, logLevel) -> {
-                    String rule = loggerName.isEmpty() ? "rule" : "rule." + loggerName;
-                    properties.setProperty(prefix + rule, logLevel.name());
-                });
-            }
-        }
-
         // add handler configurations
         for (Map.Entry<String, LogHandler> entry : handlers.entrySet()) {
             String name = entry.getKey();
@@ -403,27 +362,27 @@ public final class LoggingConfiguration {
 
             switch (handler) {
                 case ConsoleHandler consoleHandler -> {
-                    properties.setProperty(prefix + LOGGING_TYPE, "console");
+                    properties.setProperty(prefix + LOGGING_TYPE, "Console");
                     PrintStream stream = consoleHandler.getOut();
                     String sStream = stream == System.err ? SYSTEM_ERR : SYSTEM_OUT;
-                    properties.setProperty(prefix + LOGGER_CONSOLE_STREAM, sStream);
+                    properties.setProperty(prefix + LOGGER_CONSOLE_TARGET, sStream);
                     properties.setProperty(prefix + LOGGER_CONSOLE_COLORED, String.valueOf(consoleHandler.isColored()));
-                    properties.setProperty(prefix + LOGGER_CONSOLE_PATTERN, consoleHandler.getPattern().getPattern());
+                    properties.setProperty(prefix + LOGGER_LAYOUT_TYPE, "PatternLayout");
+                    properties.setProperty(prefix + LOGGER_LAYOUT_PATTERN, consoleHandler.getPattern().getPattern());
                 }
                 case FileHandler fileHandler -> {
-                    properties.setProperty(prefix + LOGGING_TYPE, "file");
-                    properties.setProperty(prefix + LOGGER_FILE_PATH, fileHandler.getPath().toString());
+                    properties.setProperty(prefix + LOGGING_TYPE, fileHandler.getMaxFileSize() > 0 ? "RollingFile" : "File");
+                    properties.setProperty(prefix + LOGGER_FILE_NAME, fileHandler.getPath().toString());
                     properties.setProperty(prefix + LOGGER_FILE_APPEND, String.valueOf(fileHandler.isAppend()));
-                    properties.setProperty(prefix + LOGGER_FILE_MAX_SIZE, String.valueOf(fileHandler.getMaxFileSize()));
-                    properties.setProperty(prefix + LOGGER_FILE_MAX_ENTRIES, String.valueOf(fileHandler.getMaxEntries()));
-                    ChronoUnit rotationUnit = fileHandler.getRotationTimeUnit();
-                    if (rotationUnit != null) {
-                        properties.setProperty(prefix + LOGGER_FILE_ROTATION_UNIT, rotationUnit.name());
+                    if (fileHandler.getMaxFileSize() > 0) {
+                        properties.setProperty(prefix + "policies.type", "Policies");
+                        properties.setProperty(prefix + "policies.size.type", "SizeBasedTriggeringPolicy");
+                        properties.setProperty(prefix + LOGGER_FILE_MAX_SIZE, String.valueOf(fileHandler.getMaxFileSize()));
+                        properties.setProperty(prefix + "strategy.type", "DefaultRolloverStrategy");
+                        properties.setProperty(prefix + LOGGER_FILE_MAX_BACKUPS, String.valueOf(fileHandler.getMaxBackupIndex()));
                     }
-                    properties.setProperty(prefix + LOGGER_FILE_MAX_BACKUPS, String.valueOf(fileHandler.getMaxBackupIndex()));
-                    properties.setProperty(prefix + LOGGER_FILE_FLUSH_LEVEL, fileHandler.getFlushLevel().name());
-                    properties.setProperty(prefix + LOGGER_FILE_FLUSH_ENTRIES, String.valueOf(fileHandler.getFlushEveryNEntries()));
-                    properties.setProperty(prefix + LOGGER_FILE_PATTERN, fileHandler.getPattern());
+                    properties.setProperty(prefix + LOGGER_LAYOUT_TYPE, "PatternLayout");
+                    properties.setProperty(prefix + LOGGER_LAYOUT_PATTERN, fileHandler.getPattern());
                 }
                 default -> {
                     // do nothing

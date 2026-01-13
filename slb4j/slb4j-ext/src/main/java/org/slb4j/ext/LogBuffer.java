@@ -15,9 +15,11 @@ import java.io.ObjectOutput;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Instant;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
@@ -36,13 +38,112 @@ public class LogBuffer implements LogHandler, Externalizable {
      */
     public static final int DEFAULT_CAPACITY = 10_000;
 
-    private String name;
+    private final String name;
     private boolean resolveLocation = false;
-    private final RingBuffer<LogEntry> buffer;
+    private final transient RingBuffer buffer;
     private final Collection<LogBufferListener> listeners = new CopyOnWriteArrayList<>();
     private final AtomicLong totalAdded = new AtomicLong(0);
     private final AtomicLong totalRemoved = new AtomicLong(0);
-    private LogFilter filter = LogFilter.allPass();
+    private transient LogFilter filter = LogFilter.allPass();
+
+    private static final class RingBuffer {
+
+        private @Nullable LogEntry[] data;
+        private int entries;
+        private int start;
+
+        private RingBuffer(int capacity) {
+            data = new LogEntry[capacity];
+            start = 0;
+            entries = 0;
+        }
+
+        private boolean put(LogEntry item) {
+            int n = capacity();
+            if (n == 0) {
+                return false;
+            }
+            if (entries < n) {
+                data[index(entries++)] = item;
+                return true;
+            } else {
+                start = (start + 1) % n;
+                data[index(entries - 1)] = item;
+                return false;
+            }
+        }
+
+        private void addAll(Collection<? extends LogEntry> items) {
+            if (items.isEmpty() || capacity() == 0) {
+                return;
+            }
+
+            for (LogEntry item : items) {
+                if (entries < capacity()) {
+                    data[index(entries++)] = item;
+                } else {
+                    start = (start + 1) % capacity();
+                    data[index(entries - 1)] = item;
+                }
+            }
+        }
+
+        private int capacity() {
+            return data.length;
+        }
+
+        private void clear() {
+            if (capacity() > 0) {
+                start = entries = 0;
+                java.util.Arrays.fill(data, null);
+            }
+        }
+
+        private LogEntry get(int i) {
+            checkIndex(i);
+            LogEntry entry = data[index(i)];
+            assert entry != null : "internal error: entry must not be null when index is valid, index = " + i;
+            return entry;
+        }
+
+        private LogEntry[] toArray() {
+            LogEntry[] arr = new LogEntry[entries];
+            int n1 = Math.min(entries, data.length - start);
+            int n2 = entries - n1;
+            System.arraycopy(data, start, arr, 0, n1);
+            System.arraycopy(data, 0, arr, n1, n2);
+            return arr;
+        }
+
+        private void setCapacity(int n) {
+            if (n != capacity()) {
+                var dataNew = new LogEntry[n];
+                int itemsToCopy = Math.min(size(), n);
+                int startIndex = Math.max(0, size() - n);
+                for (int i = 0; i < itemsToCopy; i++) {
+                    dataNew[i] = get(startIndex + i);
+                }
+                data = dataNew;
+                start = 0;
+                entries = Math.min(entries, n);
+            }
+        }
+
+        private int size() {
+            return entries;
+        }
+
+        private void checkIndex(int i) {
+            if (i < 0 || i >= size()) {
+                throw new IndexOutOfBoundsException("size=" + size() + ", index=" + i);
+            }
+        }
+
+        private int index(int i) {
+            return (start + i) % capacity();
+        }
+
+    }
 
     /**
      * Constructs a new LogBuffer instance with a default name "unnamed" and default capacity.
@@ -69,7 +170,7 @@ public class LogBuffer implements LogHandler, Externalizable {
      */
     public LogBuffer(String name, int capacity) {
         this.name = name;
-        this.buffer = new RingBuffer<>(capacity);
+        this.buffer = new RingBuffer(capacity);
     }
 
     /**
@@ -240,7 +341,7 @@ public class LogBuffer implements LogHandler, Externalizable {
      */
     public LogEntry[] toArray() {
         synchronized (buffer) {
-            return buffer.toArray(LogEntry[]::new);
+            return buffer.toArray();
         }
     }
 
@@ -257,13 +358,13 @@ public class LogBuffer implements LogHandler, Externalizable {
      */
     public record BufferState(LogEntry[] entries, long totalRemoved, long totalAdded) {
         @Override
-        public boolean equals(@Nullable Object o) {
-            if (!(o instanceof BufferState state)) {
+        public boolean equals(@Nullable Object obj) {
+            if (!(obj instanceof BufferState(LogEntry[] entriesOther, long removed, long added))) {
                 return false;
             }
-            return totalRemoved == state.totalRemoved
-                    && totalAdded == state.totalAdded
-                    && java.util.Arrays.equals(entries, state.entries);
+            return totalRemoved == removed
+                    && totalAdded == added
+                    && java.util.Arrays.equals(entries, entriesOther);
         }
 
         @Override
@@ -350,7 +451,22 @@ public class LogBuffer implements LogHandler, Externalizable {
      */
     public List<LogEntry> subList(int fromIndex, int toIndex) {
         synchronized (buffer) {
-            return new ArrayList<>(buffer.subList(fromIndex, toIndex));
+            int len = buffer.size();
+            Objects.checkFromToIndex(fromIndex, toIndex, len);
+            int sz = toIndex - fromIndex;
+            Objects.checkFromIndexSize(fromIndex, sz, len);
+
+            return List.copyOf(new AbstractList<>() {
+                @Override
+                public LogEntry get(int index) {
+                    return buffer.get(Objects.checkIndex(index, sz) + fromIndex);
+                }
+
+                @Override
+                public int size() {
+                    return sz;
+                }
+            });
         }
     }
 
@@ -366,9 +482,13 @@ public class LogBuffer implements LogHandler, Externalizable {
         }
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {throw new java.io.NotSerializableException("com.dua3.utility.logging.LogBuffer");}
+    private void readObject(java.io.ObjectInputStream in) throws java.io.NotSerializableException {
+        throw new java.io.NotSerializableException(getClass().getName());
+    }
 
-    private void writeObject(java.io.ObjectOutputStream out) throws IOException {throw new java.io.NotSerializableException("com.dua3.utility.logging.LogBuffer");}
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.NotSerializableException {
+        throw new java.io.NotSerializableException(getClass().getName());
+    }
 
     /**
      * Interface for Listeners on changes of a {@link LogBuffer} instance's contents.

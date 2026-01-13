@@ -1,7 +1,6 @@
 package org.slb4j.ext.fx.samples;
 
 import org.slb4j.ext.fx.FxLogPane;
-import org.slb4j.LogLevel;
 import org.slb4j.SLB4J;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -94,9 +93,13 @@ public class FxLogPaneSample extends Application {
                     };
 
                     int levelInt = random.nextInt(bound);
-                    LogLevel level = LogLevel.values()[implementation == 1 || implementation == 3 ? Math.max(0, levelInt - 1) : levelInt];
+                    int actLevel = switch (implementation) {
+                        case 0, 2, 3 -> levelInt;
+                        case 1 -> Math.max(0, levelInt - 1);
+                        default -> throw new IllegalStateException("integer out of range");
+                    };
 
-                    String msg = "Message #%d, imp %s, original integer level %d, level %s".formatted(nr, implementation, levelInt, level);
+                    String msg = "Message #%d, imp %s, original integer level %d, level %s".formatted(nr, implementation, levelInt, actLevel);
 
                     switch (implementation) {
                         case 0 -> {

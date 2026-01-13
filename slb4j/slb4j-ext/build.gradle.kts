@@ -20,7 +20,6 @@ plugins {
 description = "slb4j extension library"
 
 dependencies {
-    implementation(platform(libs.utility.bom))
     implementation(libs.jspecify)
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)

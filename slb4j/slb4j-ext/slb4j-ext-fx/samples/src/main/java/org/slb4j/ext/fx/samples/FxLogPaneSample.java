@@ -1,15 +1,8 @@
 package org.slb4j.ext.fx.samples;
 
-import atlantafx.base.theme.PrimerDark;
-import atlantafx.base.theme.PrimerLight;
-import atlantafx.base.theme.Theme;
 import org.slb4j.ext.fx.FxLogPane;
 import org.slb4j.LogLevel;
 import org.slb4j.SLB4J;
-import com.dua3.utility.application.ApplicationUtil;
-import com.dua3.utility.application.UiMode;
-import com.dua3.utility.fx.PlatformHelper;
-import com.dua3.utility.math.MathUtil;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -19,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 /**
@@ -31,7 +23,6 @@ public class FxLogPaneSample extends Application {
     static {
         // this has to be done before the first logger is initialized!
         SLB4J.init();
-        ApplicationUtil.setUiMode(UiMode.SYSTEM_DEFAULT);
     }
 
     private static final int AVERAGE_SLEEP_MILLIS = 5;
@@ -59,20 +50,12 @@ public class FxLogPaneSample extends Application {
      */
     public FxLogPaneSample() {
         logPane = new FxLogPane(LOG_BUFFER_SIZE);
-
-        setDarkMode(ApplicationUtil.isDarkMode());
-        ApplicationUtil.addDarkModeListener(this::setDarkMode);
-    }
-
-    private void setDarkMode(boolean enabled) {
-        Supplier<Theme> themeSupplier = enabled ? PrimerDark::new : PrimerLight::new;
-        PlatformHelper.runAndWait(() -> setUserAgentStylesheet(themeSupplier.get().getUserAgentStylesheet()));
     }
 
     @Override
     public void start(Stage primaryStage) {
         int width = 1280;
-        Scene scene = new Scene(logPane, width, width / MathUtil.GOLDEN_RATIO);
+        Scene scene = new Scene(logPane, width, Math.round(width / 1.618033988)); // use golden ratio
 
         primaryStage.setTitle(getClass().getSimpleName());
         primaryStage.setScene(scene);

@@ -248,12 +248,18 @@ public class SwingLogPane extends JPanel implements LogPane {
         TableColumn colTime = table.getColumnModel().getColumn(0);
         colTime.setHeaderValue(texts.headerTimeColumn());
         colTime.setCellRenderer(new LogEntryRenderer(new LogPattern.DateEntry("HH:mm:ss,SSS")));
-        colTime.setPreferredWidth(100);
+        int timeWidth = getColumnWidth("88:88:88,888") + 10;
+        colTime.setPreferredWidth(timeWidth);
+        colTime.setMinWidth(timeWidth);
+        colTime.setMaxWidth(timeWidth);
 
         TableColumn colLevel = table.getColumnModel().getColumn(1);
         colLevel.setHeaderValue(texts.headerLevelColumn());
         colLevel.setCellRenderer(new LogEntryRenderer(new LogPattern.LevelEntry(0, 0, false)));
-        colLevel.setPreferredWidth(60);
+        int levelWidth = getColumnWidth("SEVERE") + 10;
+        colLevel.setPreferredWidth(levelWidth);
+        colLevel.setMinWidth(levelWidth);
+        colLevel.setMaxWidth(levelWidth);
 
         TableColumn colLogger = table.getColumnModel().getColumn(2);
         colLogger.setHeaderValue(texts.headerLoggerColumn());
@@ -264,6 +270,12 @@ public class SwingLogPane extends JPanel implements LogPane {
         colMessage.setHeaderValue(texts.headerMessageColumn());
         colMessage.setCellRenderer(new LogEntryRenderer(new LogPattern.MessageEntry(0, 0, false)));
         colMessage.setPreferredWidth(500);
+    }
+
+    private int getColumnWidth(String sampleText) {
+        Font font = table.getFont();
+        java.awt.font.FontRenderContext frc = new java.awt.font.FontRenderContext(null, true, true);
+        return (int) font.getStringBounds(sampleText, frc).getWidth();
     }
 
     private boolean isScrolledToBottom() {

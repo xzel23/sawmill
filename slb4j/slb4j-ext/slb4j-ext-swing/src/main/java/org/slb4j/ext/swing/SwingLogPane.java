@@ -71,6 +71,28 @@ public class SwingLogPane extends JPanel implements LogPane {
     private final LogPattern pattern = LogPattern.DEFAULT_PATTERN;
     private final StringBuilder buffer = new StringBuilder(4096);
     private boolean autoScroll = true;
+    private boolean darkMode = false;
+
+    private static final java.awt.Color LIGHT_BG = java.awt.Color.WHITE;
+    private static final java.awt.Color LIGHT_FG = java.awt.Color.BLACK;
+    private static final java.awt.Color DARK_BG = new java.awt.Color(43, 43, 43);
+    private static final java.awt.Color DARK_FG = new java.awt.Color(187, 187, 187);
+
+    private static final java.util.Map<LogLevel, java.awt.Color> LIGHT_COLORS = java.util.Map.of(
+            LogLevel.ERROR, new java.awt.Color(139, 0, 0), // darkred
+            LogLevel.WARN, java.awt.Color.RED,
+            LogLevel.INFO, new java.awt.Color(0, 0, 139), // darkblue
+            LogLevel.DEBUG, java.awt.Color.BLACK,
+            LogLevel.TRACE, java.awt.Color.DARK_GRAY
+    );
+
+    private static final java.util.Map<LogLevel, java.awt.Color> DARK_COLORS = java.util.Map.of(
+            LogLevel.ERROR, java.awt.Color.RED,
+            LogLevel.WARN, new java.awt.Color(255, 69, 0), // orangered
+            LogLevel.INFO, java.awt.Color.WHITE,
+            LogLevel.DEBUG, java.awt.Color.DARK_GRAY,
+            LogLevel.TRACE, new java.awt.Color(105, 105, 105) // dimgray
+    );
 
     public SwingLogPane() {
         this(LogBuffer.DEFAULT_CAPACITY);
@@ -299,9 +321,33 @@ public class SwingLogPane extends JPanel implements LogPane {
                 } catch (IOException e) {
                     setText("ERROR");
                 }
+
+                if (!isSelected) {
+                    java.awt.Color fg = darkMode ? DARK_COLORS.get(entry.level()) : LIGHT_COLORS.get(entry.level());
+                    if (fg != null) {
+                        setForeground(fg);
+                    }
+                }
             }
             return this;
         }
+    }
+
+    @Override
+    public void setDarkMode(boolean darkMode) {
+        this.darkMode = darkMode;
+        java.awt.Color bg = darkMode ? DARK_BG : LIGHT_BG;
+        java.awt.Color fg = darkMode ? DARK_FG : LIGHT_FG;
+
+        table.setBackground(bg);
+        table.setForeground(fg);
+        table.setGridColor(darkMode ? java.awt.Color.GRAY : java.awt.Color.LIGHT_GRAY);
+
+        details.setBackground(bg);
+        details.setForeground(fg);
+        details.setCaretColor(fg);
+
+        table.repaint();
     }
 
     private static LogBuffer createBuffer(int bufferSize) {

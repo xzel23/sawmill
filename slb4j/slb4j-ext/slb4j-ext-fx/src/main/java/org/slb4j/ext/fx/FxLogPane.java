@@ -74,6 +74,7 @@ public class FxLogPane extends BorderPane implements LogPane {
      * the FxLogPane.
      */
     public static final String CSS_CLASS_LOGTABLE_ROW = "logtable-row";
+
     /**
      * A string constant representing the prefix "log-" used for CSS classes
      * associated with log level styling within the {@code FxLogPane} component.
@@ -422,6 +423,7 @@ public class FxLogPane extends BorderPane implements LogPane {
      * Set dark mode stylesheet for this pane.
      * @param dark true to use dark.css, false to use light.css
      */
+    @Override
     public void setDarkMode(boolean dark) {
         getStylesheets().setAll(dark ? darkCss : lightCss);
         this.dark = dark;

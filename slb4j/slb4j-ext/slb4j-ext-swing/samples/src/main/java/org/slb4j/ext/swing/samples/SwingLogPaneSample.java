@@ -31,6 +31,7 @@ public class SwingLogPaneSample {
     private final SwingLogPane logPane;
     private final SecureRandom random = new SecureRandom();
     private final AtomicInteger n = new AtomicInteger();
+    private boolean darkMode = false;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(SwingLogPaneSample::new);
@@ -42,6 +43,9 @@ public class SwingLogPaneSample {
         JFrame frame = new JFrame(getClass().getSimpleName());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setContentPane(logPane);
+
+        // JComponents need to be focusable to receive key events
+        logPane.setFocusable(true);
 
         int width = 1280;
         frame.setSize(width, (int) Math.round(width / 1.618033988)); // use golden ratio

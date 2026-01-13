@@ -83,4 +83,15 @@ public class SwingLogWindow extends JFrame implements LogWindow {
     public LogBuffer getLogBuffer() {
         return logBuffer;
     }
+
+    /**
+     * Sets the dark mode for the log window.
+     *
+     * @param darkMode true to enable dark mode, false to disable it
+     */
+    public void setDarkMode(boolean darkMode) {
+        if (getContentPane() instanceof SwingLogPane pane) {
+            pane.setDarkMode(darkMode);
+        }
+    }
 }

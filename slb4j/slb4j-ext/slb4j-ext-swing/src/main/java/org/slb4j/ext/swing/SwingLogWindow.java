@@ -1,6 +1,7 @@
 package org.slb4j.ext.swing;
 
 import org.slb4j.ext.LogBuffer;
+import org.slb4j.ext.LogWindow;
 import org.slb4j.ext.LogPaneTexts;
 
 import javax.swing.JFrame;
@@ -11,7 +12,7 @@ import java.util.Objects;
 /**
  * The SwingLogWindow class represents a Swing JFrame that displays log entries in a table view.
  */
-public class SwingLogWindow extends JFrame {
+public class SwingLogWindow extends JFrame implements LogWindow {
 
     private final LogBuffer logBuffer;
 

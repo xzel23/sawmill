@@ -7,6 +7,7 @@ import org.slb4j.LogPattern;
 import org.slb4j.SLB4J;
 import org.slb4j.ext.LogBuffer;
 import org.slb4j.ext.LogEntry;
+import org.slb4j.ext.LogPane;
 import org.slb4j.ext.LogPaneTexts;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
@@ -62,7 +63,7 @@ import java.util.stream.Stream;
  * The log entries can be filtered by log level, logger name, and message content.
  * Additionally, it supports text search within the log messages.
  */
-public class FxLogPane extends BorderPane {
+public class FxLogPane extends BorderPane implements LogPane {
 
     private static final double COLUMN_WIDTH_MAX = Double.MAX_VALUE;
     private static final double COLUMN_WIDTH_LARGE = 2000.0;

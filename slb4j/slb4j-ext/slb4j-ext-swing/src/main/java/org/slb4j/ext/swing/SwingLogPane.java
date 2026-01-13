@@ -7,6 +7,7 @@ import org.slb4j.LogPattern;
 import org.slb4j.ext.LogBuffer;
 import org.slb4j.ext.LogEntry;
 import org.slb4j.ext.LogEntryFilter;
+import org.slb4j.ext.LogPane;
 import org.slb4j.ext.LogPaneTexts;
 import org.slb4j.filter.LogLevelFilter;
 import org.slb4j.filter.LoggerNameFilter;
@@ -46,7 +47,7 @@ import java.util.function.Supplier;
  * and search capabilities. It consists of a JTable for displaying log entries and a
  * JTextArea for showing details of the selected log entry.
  */
-public class SwingLogPane extends JPanel {
+public class SwingLogPane extends JPanel implements LogPane {
 
     public static final LogPaneTexts DEFAULT_TEXTS = LogPaneTexts.of(
             "Up",

@@ -1,6 +1,7 @@
 package org.slb4j.ext.fx;
 
 import org.slb4j.ext.LogBuffer;
+import org.slb4j.ext.LogWindow;
 import org.slb4j.ext.LogPaneTexts;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
@@ -11,7 +12,7 @@ import javafx.stage.Stage;
  * The FxLogWindow class represents a JavaFX window that displays log entries in a table view.
  * It extends the Stage class.
  */
-public class FxLogWindow extends Stage {
+public class FxLogWindow extends Stage implements LogWindow {
 
     private final LogBuffer logBuffer;
 

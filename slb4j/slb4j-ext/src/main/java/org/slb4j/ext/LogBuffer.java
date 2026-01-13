@@ -15,8 +15,8 @@ import java.io.ObjectOutput;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Instant;
-import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -438,36 +438,44 @@ public class LogBuffer implements LogHandler, Externalizable {
     }
 
     /**
-     * Returns a view of the portion of this LogBuffer between the specified
-     * {@code fromIndex}, inclusive, and {@code toIndex}, exclusive.
+     * Returns a snapshot of the portion of this LogBuffer between the specified
+     * {@code fromIndex}, inclusive, and {@code toIndex}, exclusive. The returned
+     * list is a copy and will not reflect subsequent changes to this LogBuffer.
      *
      * @param fromIndex the index of the first LogEntry to be included in the
      *                  returned subList.
-     * @param toIndex the index after the last LogEntry to be included in the
-     *                returned subList.
-     * @return a view of the specified range within this LogBuffer.
+     * @param toIndex   the index after the last LogEntry to be included in the
+     *                  returned subList.
+     * @return a snapshot of the specified range within this LogBuffer.
      * @throws IndexOutOfBoundsException if {@code fromIndex} or {@code toIndex} is
-     *         out of range (fromIndex &lt; 0 || toIndex &gt; size() || fromIndex &gt; toIndex).
+     *                                   out of range (fromIndex &lt; 0 || toIndex &gt; size() || fromIndex &gt; toIndex).
      */
     public List<LogEntry> subList(int fromIndex, int toIndex) {
+        LogEntry[] result;
         synchronized (buffer) {
             int len = buffer.size();
             Objects.checkFromToIndex(fromIndex, toIndex, len);
             int sz = toIndex - fromIndex;
-            Objects.checkFromIndexSize(fromIndex, sz, len);
 
-            return List.copyOf(new AbstractList<>() {
-                @Override
-                public LogEntry get(int index) {
-                    return buffer.get(Objects.checkIndex(index, sz) + fromIndex);
-                }
+            result = new LogEntry[sz];
 
-                @Override
-                public int size() {
-                    return sz;
-                }
-            });
+            // Calculate the position in the ring buffer
+            int startPos = buffer.index(fromIndex);
+            int capacity = buffer.capacity();
+
+            // Calculate how many elements we can copy in one go before wrapping
+            int elementsBeforeWrap = Math.min(sz, capacity - startPos);
+
+            // Copy the first segment (from startPos to end of buffer or until we have all elements)
+            System.arraycopy(buffer.data, startPos, result, 0, elementsBeforeWrap);
+
+            // If the range wraps around, copy the remaining elements from the beginning
+            if (elementsBeforeWrap < sz) {
+                System.arraycopy(buffer.data, 0, result, elementsBeforeWrap, sz - elementsBeforeWrap);
+            }
         }
+
+        return Arrays.asList(result);
     }
 
     /**

@@ -62,6 +62,34 @@ import java.util.stream.Stream;
  */
 public class FxLogPane extends BorderPane {
 
+    public record Texts(
+            String textSearchUp,
+            String textSearchDown,
+            String textClear,
+            String textLogLevel,
+            String textLogger,
+            String textLogText,
+            String textSearch,
+            String textColumnTime,
+            String textColumnLevel,
+            String textColumnLogger,
+            String textColumnMessage
+    ) {
+        public static final Texts DEFAULT_TEXTS = new Texts(
+                "Up",
+                "Down",
+                "Clear",
+                "Level",
+                "Logger",
+                "Text",
+                "Search",
+                "Time",
+                "Level",
+                "Logger",
+                "Message"
+        );
+    }
+
     private static final double COLUMN_WIDTH_MAX = Double.MAX_VALUE;
     private static final double COLUMN_WIDTH_LARGE = 2000.0;
 
@@ -84,6 +112,7 @@ public class FxLogPane extends BorderPane {
     public final StringBuilder buffer = new StringBuilder(MAX_BUFFER_SIZE);
 
     private final LogBuffer logBuffer;
+    private final Texts texts;
     private final LogPattern pattern = LogPattern.parse(LogPattern.DEFAULT_PATTERN);
     private final TextArea details;
     private final TableView<@Nullable LogEntry> tableView;
@@ -152,9 +181,21 @@ public class FxLogPane extends BorderPane {
      * @throws NullPointerException if logBuffer is null
      */
     public FxLogPane(LogBuffer logBuffer) {
+        this(logBuffer, Texts.DEFAULT_TEXTS);
+    }
+
+    /**
+     * Construct a new FxLogPane instance with the given buffer and texts.
+     *
+     * @param logBuffer the logBuffer to use
+     * @param texts the texts to use for labels and buttons
+     * @throws NullPointerException if logBuffer or texts is null
+     */
+    public FxLogPane(LogBuffer logBuffer, Texts texts) {
         FilteredList<LogEntry> entries = new FilteredList<>(new LogEntriesObservableList(logBuffer), p -> true);
 
         this.logBuffer = logBuffer;
+        this.texts = texts;
         ToolBar toolBar = new ToolBar();
         this.tableView = new TableView<>(entries);
         this.details = new TextArea();
@@ -196,8 +237,8 @@ public class FxLogPane extends BorderPane {
         // search for text
         TextField tfSearchText = new TextField();
         tfSearchText.setPrefWidth(tfWidth);
-        Button btnSearchUp = new Button(I18NInstance.get().get("dua3.utility.fx.controls.log.search.up"));
-        Button btnSearchDown = new Button(I18NInstance.get().get("dua3.utility.fx.controls.log.search.down"));
+        Button btnSearchUp = new Button(texts.textSearchUp());
+        Button btnSearchDown = new Button(texts.textSearchDown());
 
         BiConsumer<String, Boolean> searchAction = (text, up) -> searchAction(text, up, entries);
 
@@ -210,19 +251,19 @@ public class FxLogPane extends BorderPane {
         btnSearchUp.setOnAction(evt -> searchAction.accept(tfSearchText.getText(), true));
         btnSearchDown.setOnAction(evt -> searchAction.accept(tfSearchText.getText(), false));
 
-        Button btnClear = new Button(I18NInstance.get().get("dua3.utility.fx.controls.log.clear"));
+        Button btnClear = new Button(texts.textClear());
         btnClear.setOnAction(evt -> logBuffer.clear());
 
         // create toolbar
         toolBar.getItems().setAll(
-                new Label(I18NInstance.get().get("dua3.utility.fx.controls.log.level")),
+                new Label(texts.textLogLevel()),
                 cbLogLevel,
-                new Label(I18NInstance.get().get("dua3.utility.fx.controls.log.logger")),
+                new Label(texts.textLogger()),
                 tfLoggerName,
-                new Label(I18NInstance.get().get("dua3.utility.fx.controls.log.text")),
+                new Label(texts.textLogText()),
                 tfMessageContent,
                 new Separator(Orientation.HORIZONTAL),
-                new Label(I18NInstance.get().get("dua3.utility.fx.controls.log.search")),
+                new Label(texts.textSearch()),
                 tfSearchText,
                 btnSearchUp,
                 btnSearchDown,
@@ -235,10 +276,10 @@ public class FxLogPane extends BorderPane {
         tableView.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
         //noinspection unchecked
         tableView.getColumns().setAll(
-                createColumn(I18NInstance.get().get("dua3.utility.fx.controls.log.column.time"), LogEntry::time, true, "8888-88-88T88:88:88.8888888"),
-                createColumn(I18NInstance.get().get("dua3.utility.fx.controls.log.column.level"), LogEntry::level, true, Arrays.stream(LogLevel.values()).map(Object::toString).toArray(String[]::new)),
-                createColumn(I18NInstance.get().get("dua3.utility.fx.controls.log.column.logger"), LogEntry::logger, false, "X".repeat(20)),
-                createColumn(I18NInstance.get().get("dua3.utility.fx.controls.log.column.message"), LogEntry::message, false)
+                createColumn(texts.textColumnTime(), LogEntry::time, true, "8888-88-88T88:88:88.8888888"),
+                createColumn(texts.textColumnLevel(), LogEntry::level, true, Arrays.stream(LogLevel.values()).map(Object::toString).toArray(String[]::new)),
+                createColumn(texts.textColumnLogger(), LogEntry::logger, false, "X".repeat(20)),
+                createColumn(texts.textColumnMessage(), LogEntry::message, false)
         );
 
         // disable autoscroll if the selection is not empty, enable when selection is cleared while scrolled to bottom

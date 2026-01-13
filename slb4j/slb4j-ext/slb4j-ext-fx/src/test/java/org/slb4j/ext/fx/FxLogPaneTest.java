@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 /**
  * Tests for the FxLogPane class.
  */
-@Disabled
 @Execution(ExecutionMode.SAME_THREAD)
 class FxLogPaneTest extends FxTestBase {
 

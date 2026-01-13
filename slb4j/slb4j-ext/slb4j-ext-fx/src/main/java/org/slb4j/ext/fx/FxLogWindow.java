@@ -40,8 +40,19 @@ public class FxLogWindow extends Stage {
      * @param logBuffer the LogBuffer to use
      */
     public FxLogWindow(String title, LogBuffer logBuffer) {
+        this(title, logBuffer, FxLogPane.Texts.DEFAULT_TEXTS);
+    }
+
+    /**
+     * Constructs a new instance of {@code FxLogWindow} using the provided {@link LogBuffer} and {@link FxLogPane.Texts}.
+     *
+     * @param title     the window title
+     * @param logBuffer the LogBuffer to use
+     * @param texts     the texts to use
+     */
+    public FxLogWindow(String title, LogBuffer logBuffer, FxLogPane.Texts texts) {
         this.logBuffer = logBuffer;
-        FxLogPane logPane = new FxLogPane(this.logBuffer);
+        FxLogPane logPane = new FxLogPane(this.logBuffer, texts);
         Scene scene = new Scene(logPane);
         setScene(scene);
         setTitle(title);

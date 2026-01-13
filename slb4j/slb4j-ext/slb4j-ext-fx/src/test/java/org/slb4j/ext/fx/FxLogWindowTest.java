@@ -14,14 +14,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * Tests for the FxLogWindow class.
  */
-@Disabled
 @Execution(ExecutionMode.SAME_THREAD)
 class FxLogWindowTest extends FxTestBase {
 
     @Test
     void testConstructorWithDefaultBuffer() throws Throwable {
         FxTestBase.runOnFxThreadAndWait(() -> {
-            FxLogWindow window = new FxLogWindow();
+            FxLogWindow window = new FxLogWindow("Log Window");
             assertNotNull(window, "FxLogWindow should be created successfully");
 
             // Check if the window has a scene
@@ -48,7 +47,7 @@ class FxLogWindowTest extends FxTestBase {
     void testConstructorWithMaxLines() throws Throwable {
         FxTestBase.runOnFxThreadAndWait(() -> {
             int maxLines = 100;
-            FxLogWindow window = new FxLogWindow(maxLines);
+            FxLogWindow window = new FxLogWindow("Log Window", maxLines);
             assertNotNull(window, "FxLogWindow should be created successfully");
         });
     }
@@ -68,7 +67,7 @@ class FxLogWindowTest extends FxTestBase {
     void testConstructorWithLogBuffer() throws Throwable {
         FxTestBase.runOnFxThreadAndWait(() -> {
             LogBuffer buffer = new LogBuffer();
-            FxLogWindow window = new FxLogWindow(buffer);
+            FxLogWindow window = new FxLogWindow("Log Window", buffer);
             assertNotNull(window, "FxLogWindow should be created successfully");
             assertSame(buffer, window.getLogBuffer(), "LogBuffer should be the same instance that was passed in");
         });
@@ -78,7 +77,7 @@ class FxLogWindowTest extends FxTestBase {
     void testGetLogBuffer() throws Throwable {
         FxTestBase.runOnFxThreadAndWait(() -> {
             LogBuffer buffer = new LogBuffer();
-            FxLogWindow window = new FxLogWindow(buffer);
+            FxLogWindow window = new FxLogWindow("Log Window", buffer);
             LogBuffer retrievedBuffer = window.getLogBuffer();
             assertNotNull(retrievedBuffer, "Retrieved LogBuffer should not be null");
             assertSame(buffer, retrievedBuffer, "Retrieved LogBuffer should be the same as the one used to construct the window");

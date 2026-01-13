@@ -63,34 +63,6 @@ import java.util.stream.Stream;
  */
 public class FxLogPane extends BorderPane {
 
-    public record Texts(
-            String textSearchUp,
-            String textSearchDown,
-            String textClear,
-            String textLogLevel,
-            String textLogger,
-            String textLogText,
-            String textSearch,
-            String textColumnTime,
-            String textColumnLevel,
-            String textColumnLogger,
-            String textColumnMessage
-    ) {
-        public static final Texts DEFAULT_TEXTS = new Texts(
-                "Up",
-                "Down",
-                "Clear",
-                "Level",
-                "Logger",
-                "Text",
-                "Search",
-                "Time",
-                "Level",
-                "Logger",
-                "Message"
-        );
-    }
-
     private static final double COLUMN_WIDTH_MAX = Double.MAX_VALUE;
     private static final double COLUMN_WIDTH_LARGE = 2000.0;
 
@@ -109,6 +81,20 @@ public class FxLogPane extends BorderPane {
      */
     public static final String CSS_PREFIX_LOGLEVEL = "log-";
     public static final int MAX_BUFFER_SIZE = 4096;
+
+    public static final LogPaneTexts DEFAULT_TEXTS = LogPaneTexts.of(
+            "Up",
+            "Down",
+            "Clear",
+            "Level",
+            "Logger",
+            "Text",
+            "Search",
+            "Time",
+            "Level",
+            "Logger",
+            "Message"
+    );
 
     public final StringBuilder buffer = new StringBuilder(MAX_BUFFER_SIZE);
 
@@ -193,7 +179,7 @@ public class FxLogPane extends BorderPane {
      * @throws NullPointerException if logBuffer is null
      */
     public FxLogPane(LogBuffer logBuffer) {
-        this(logBuffer, Texts.DEFAULT_TEXTS);
+        this(logBuffer, DEFAULT_TEXTS);
     }
 
     /**
@@ -203,7 +189,7 @@ public class FxLogPane extends BorderPane {
      * @param texts the texts to use for labels and buttons
      * @throws NullPointerException if logBuffer or texts is null
      */
-    public FxLogPane(LogBuffer logBuffer, Texts texts) {
+    public FxLogPane(LogBuffer logBuffer, LogPaneTexts texts) {
         FilteredList<LogEntry> entries = new FilteredList<>(new LogEntriesObservableList(logBuffer), p -> true);
 
         this.logBuffer = logBuffer;
